@@ -2,12 +2,12 @@
   "expo": {
     "name": "ChemistryCalc",
     "slug": "ChemistryCalc",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/chem.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/chem.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,12 +19,21 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/chem.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.decadino.ChemistryCalc"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "afd0afa2-9f28-4b7c-8d1c-02a552110c6c"
+      }
     }
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-8342678716913452~3619821433"
   }
 }
