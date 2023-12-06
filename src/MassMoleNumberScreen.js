@@ -3,39 +3,8 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
-const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-8342678716913452/3774351217';
-
-const interstitial = InterstitialAd.createForAdRequest(interstitialAdUnitId, {
-  requestNonPersonalizedAdsOnly: false,
-});
 
 const MassMoleNumberScreen = () => {
-
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      setLoaded(true);
-    });
-
-    // Start loading the interstitial straight away
-    interstitial.load();
-
-    // Unsubscribe from events on unmount
-    return () => {
-      unsubscribe();
-      // Clean up the interstitial ad
-    };
-  }, []);
-
-  useEffect(() => {
-    // Show the interstitial ad once it's done loading
-    if (loaded) {
-      interstitial.show().catch((error) => {
-        console.error('Error showing interstitial ad', error);
-      });
-    }
-  }, [loaded]);
 
   return (
     <>

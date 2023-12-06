@@ -3,38 +3,9 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
-const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-8342678716913452/3774351217';
-
-const interstitial = InterstitialAd.createForAdRequest(interstitialAdUnitId, {
-  requestNonPersonalizedAdsOnly: false,
-});
 
 const ElectrolysisCalculations = () => {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      setLoaded(true);
-    });
-
-    // Start loading the interstitial straight away
-    interstitial.load();
-
-    // Unsubscribe from events on unmount
-    return () => {
-      unsubscribe();
-      // Note: The destroy method is not available in some versions, so it's omitted
-    };
-  }, []);
-
-  useEffect(() => {
-    // Show the interstitial ad once it's done loading
-    if (loaded) {
-      interstitial.show().catch((error) => {
-        console.error('Error showing interstitial ad', error);
-      });
-    }
-  }, [loaded]);
+  
 
   return (
     <>
@@ -58,7 +29,7 @@ const ElectrolysisCalculations = () => {
         
         <Text style={styles.subHeader}>Determine the Mass of Deposited Copper</Text>
         <Text>The half-reaction for copper deposition is:</Text>
-        <Text>Cu²⁺ + 2e⁻ → Cu</Text>
+        <Text>Cu²⁺ + 2e⁻ == Cu</Text>
         <Text>This means that 2 moles of electrons are needed to deposit 1 mole of copper.</Text>
         <Text>mass of copper = 0.0186 mol * (63.55 g/mol)</Text>
         <Text>mass of copper = 1.15 g</Text>
@@ -78,7 +49,7 @@ const ElectrolysisCalculations = () => {
         <Text>n = 0.0748 mol</Text>
         <Text style = {styles.subHeader}>Calculate the volume of hydrogen gas produced</Text>
         <Text>The half-reaction for the production of hydrogen gas at the cathode is:</Text>
-        <Text>2H⁺ + 2e⁻ → H₂</Text>
+        <Text>2H⁺ + 2e⁻ == H₂</Text>
         <Text>This means that 2 moles of electrons are required to produce 1 mole of hydrogen gas.</Text>
         <Text>volume of hydrogen gas = 0.0748 mol * (24 dm³/mol)</Text>
         <Text>volume of hydrogen gas = 1.80 dm³</Text>
@@ -94,7 +65,7 @@ const ElectrolysisCalculations = () => {
         <Text>n = 0.141 mol</Text>
         <Text style = {styles.subHeader}>Calculate the quantity of electricity required</Text>
         <Text>The half-reaction for the production of chlorine gas at the anode is:</Text>
-        <Text style={styles.formula}>2Cl⁻ → Cl₂ + 2e⁻</Text>
+        <Text style={styles.formula}>2Cl⁻ == Cl₂ + 2e⁻</Text>
         <Text>This means that 2 moles of electrons are required to produce 1 mole of chlorine gas.</Text>
         <Text style={styles.formula}>Q = n * F</Text>
         <Text>Q = 0.141 mol * 96500 C/mol</Text>

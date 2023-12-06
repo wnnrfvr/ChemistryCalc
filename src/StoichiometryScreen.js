@@ -1,41 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
-const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-8342678716913452/3774351217';
-
-const interstitial = InterstitialAd.createForAdRequest(interstitialAdUnitId, {
-  requestNonPersonalizedAdsOnly: false,
-});
-
 const StoichiometryScreen = () => {
-
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      setLoaded(true);
-    });
-
-    // Start loading the interstitial straight away
-    interstitial.load();
-
-    // Unsubscribe from events on unmount
-    return () => {
-      unsubscribe();
-      // Note: The destroy method is not available in some versions, so it's omitted
-    };
-  }, []);
-
-  useEffect(() => {
-    // Show the interstitial ad once it's done loading
-    if (loaded) {
-      interstitial.show().catch((error) => {
-        console.error('Error showing interstitial ad', error);
-      });
-    }
-  }, [loaded]);
 
   return (
     <>
@@ -102,7 +70,7 @@ const StoichiometryScreen = () => {
       </View>
       <View style={styles.card}>
         <Text style={styles.problemText}>Problem 3: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 C₆H₁₂O₆ → 2 C₂H₅OH + 2 CO₂</Text>
+        <Text style={styles.equation}>2 C₆H₁₂O₆ == 2 C₂H₅OH + 2 CO₂</Text>
         <Text style={styles.problemText}>How many moles of ethanol (C₂H₅OH) are produced from 60 grams of glucose (C₆H₁₂O₆)?</Text>
         <Text style={styles.solution}>First, convert 60 grams of glucose to moles using its molar mass (approximately 180 g/mol):</Text>
         <Text style={styles.calculation}>60 grams / 180 g/mol = 0.33 moles of C₆H₁₂O₆</Text>
@@ -111,7 +79,7 @@ const StoichiometryScreen = () => {
       </View>
       <View style={styles.card}>
         <Text style={styles.problemText}>Problem 4: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 Al + 3 Cl₂ = 2 AlCl₃</Text>
+        <Text style={styles.equation}>2 Al + 3 Cl₂ == 2 AlCl₃</Text>
         <Text style={styles.problemText}>How many grams of aluminum chloride (AlCl₃) are produced from 45 grams of aluminum (Al) and excess chlorine (Cl₂)?</Text>
         <Text style={styles.solution}>First, convert 45 grams of aluminum to moles using its molar mass (approximately 27 g/mol):</Text>
         <Text style={styles.calculation}>45 grams / 27 g/mol ≈ 1.67 moles of Al</Text>

@@ -3,40 +3,11 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
-const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-8342678716913452/3774351217';
-
-const interstitial = InterstitialAd.createForAdRequest(interstitialAdUnitId, {
-  requestNonPersonalizedAdsOnly: false,
-});
 
 
 
 const PhCalcScreen = () => {
-  const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      setLoaded(true);
-    });
-
-    // Start loading the interstitial straight away
-    interstitial.load();
-
-    // Unsubscribe from events on unmount
-    return () => {
-      unsubscribe();
-      // Note: The destroy method is not available in some versions, so it's omitted
-    };
-  }, []);
-
-  useEffect(() => {
-    // Show the interstitial ad once it's done loading
-    if (loaded) {
-      interstitial.show().catch((error) => {
-        console.error('Error showing interstitial ad', error);
-      });
-    }
-  }, [loaded]);
 
   return (
     <>
@@ -204,7 +175,7 @@ const PhCalcScreen = () => {
       </View>
 
       <View style={styles.questionContainer}>
-        <Text style={styles.question}>A equation contains 0.050 M hydrochloric acid (HCl) and 0.025 M sodium hydroxide (NaOH). What is the pH of the equation?</Text>
+        <Text style={styles.question}>An equation contains 0.050 M hydrochloric acid (HCl) and 0.025 M sodium hydroxide (NaOH). What is the pH of the equation?</Text>
 
         <Text style={styles.explanation}>When a strong acid and a strong base are mixed in unequal amounts, the reaction goes to completion to produce water and a salt. The pH of the resulting equation depends on the relative amounts of acid and base that were mixed.</Text>
         <Text style={styles.explanation}>In this case, there is more hydrochloric acid than sodium hydroxide in the equation. Therefore, the equation will be acidic. To calculate the pH of the equation, we can use the following equation:</Text>
@@ -212,7 +183,7 @@ const PhCalcScreen = () => {
         <Text style={styles.explanation}>Where [H+] is the concentration of hydrogen ions in the equation.</Text>
         <Text style={styles.explanation}>To calculate the concentration of hydrogen ions, we need to take into account the fact that some of the hydrochloric acid has reacted with the sodium hydroxide to produce water.</Text>
         <Text style={styles.explanation}>The following equation shows the equilibrium reaction between hydrochloric acid and sodium hydroxide:</Text>
-        <Text style={styles.equation}>HCl + NaOH → NaCl + H2O</Text>
+        <Text style={styles.equation}>HCl + NaOH == NaCl + H2O</Text>
         <Text style={styles.explanation}>At equilibrium, the following equation holds:</Text>
         <Text style={styles.equation}>[H+][Cl-] = [OH-]</Text>
         <Text style={styles.explanation}>Where [Cl-] is the concentration of chloride ions and [OH-] is the concentration of hydroxide ions.</Text>
