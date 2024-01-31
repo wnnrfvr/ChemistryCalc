@@ -9,7 +9,6 @@ const SolutionChemistryScreen = () => {
   return (
     <>
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Solution Chemistry</Text>
 
       <View style={styles.problemContainer}>
         <Text style={styles.problemText}>
@@ -268,6 +267,165 @@ const SolutionChemistryScreen = () => {
         <Text>mass of glucose = 22.52 g</Text>
         <Text style={styles.result}>Therefore, you will need 22.52 grams of glucose to prepare 250 mL of a 0.5 M solution.</Text>
     </View>
+
+
+    <View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 13:
+  </Text>
+  <Text style={styles.questionText}>
+    A solution is prepared by dissolving 15.0 grams of potassium nitrate (KNO₃) in enough water to make 250.0 mL of solution. Calculate the molarity of the solution.
+  </Text>
+
+  <Text style={styles.solution}>To find the molarity (M) of the solution, use the formula:</Text>
+  <Text style={styles.step}>M = moles of solute / liters of solution</Text>
+  <Text>First, calculate the moles of potassium nitrate:</Text>
+  <Text style={styles.step}>moles = mass / molar mass</Text>
+  <Text>moles = 15.0 g / (39.10 g/mol + 14.01 g/mol + 3 * 16.00 g/mol)</Text>
+  <Text>moles ≈ 0.125 mol</Text>
+  <Text>Now, calculate the molarity:</Text>
+  <Text style={styles.step}>M = 0.125 mol / 0.250 L</Text>
+  <Text style={styles.result}>Therefore, the molarity of the solution is 0.5 M.</Text>
+</View>
+
+<View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 14:
+  </Text>
+  <Text style={styles.questionText}>
+    A buffer solution is created by mixing 75.0 mL of 0.20 M acetic acid (CH₃COOH) with 50.0 mL of 0.30 M sodium acetate (CH₃COONa). Determine the pH of the buffer. (pKa for acetic acid is 4.76).
+  </Text>
+
+  <Text style={styles.solution}>Apply the Henderson-Hasselbalch equation for buffer solutions:</Text>
+  <Text style={styles.step}>pH = pKa + log([A-]/[HA])</Text>
+  <Text>Calculate moles, concentrations, and apply the Henderson-Hasselbalch equation:</Text>
+  <Text style={styles.step}>Moles of acetic acid = 0.015 mol (75.0 mL * 0.20 M)</Text>
+  <Text style={styles.step}>Moles of sodium acetate = 0.015 mol (50.0 mL * 0.30 M)</Text>
+  <Text style={styles.step}>[HA] = 0.015 mol / 0.125 L = 0.12 M</Text>
+  <Text style={styles.step}>[A-] = 0.015 mol / 0.125 L = 0.12 M</Text>
+  <Text style={styles.step}>pH = 4.76 + log(0.12/0.12) = 4.76</Text>
+  <Text style={styles.result}>Therefore, the pH of the buffer is 4.76.</Text>
+</View>
+
+<View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 15:
+  </Text>
+  <Text style={styles.questionText}>
+    Calculate the osmotic pressure of a solution at 25°C, created by dissolving 0.50 moles of glucose (C₆H₁₂O₆) in 1.5 liters of water.
+  </Text>
+
+  <Text style={styles.solution}>Osmotic pressure (Π) can be calculated using the formula:</Text>
+  <Text style={styles.step}>Π = i * MRT</Text>
+  <Text>where i is the van't Hoff factor, M is the molarity, R is the ideal gas constant, and T is the temperature in Kelvin.</Text>
+  <Text>First, calculate the molarity of the solution:</Text>
+  <Text style={styles.step}>M = moles of solute / liters of solution</Text>
+  <Text style={styles.step}>M = 0.50 mol / 1.5 L</Text>
+  <Text style={styles.step}>M = 0.33 M</Text>
+  <Text>Now, use the osmotic pressure formula:</Text>
+  <Text style={styles.step}>Π = i * MRT</Text>
+  <Text style={styles.step}>Π = 1 * 0.33 M * 0.0821 L.atm/mol.K * (25°C + 273.15) K</Text>
+  <Text style={styles.result}>Therefore, the osmotic pressure of the solution is approximately 6.59 atm.</Text>
+</View>
+
+<View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 16:
+  </Text>
+  <Text style={styles.questionText}>
+    A solution is prepared by diluting 50.0 mL of 6.0 M hydrochloric acid (HCl) to a final volume of 250.0 mL. Calculate the molarity of the diluted solution.
+  </Text>
+
+  <Text style={styles.solution}>Use the dilution formula:</Text>
+  <Text style={styles.step}>M₁V₁ = M₂V₂</Text>
+  <Text>where M₁ and V₁ are the initial molarity and volume, and M₂ and V₂ are the final molarity and volume.</Text>
+  <Text>Plug in the values:</Text>
+  <Text style={styles.step}>(6.0 M) * (50.0 mL) = M₂ * (250.0 mL)</Text>
+  <Text style={styles.step}>M₂ = (6.0 M * 50.0 mL) / 250.0 mL</Text>
+  <Text style={styles.result}>Therefore, the molarity of the diluted solution is 1.2 M.</Text>
+</View>
+
+<View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 17:
+  </Text>
+  <Text style={styles.questionText}>
+    Calculate the pH of a solution obtained by mixing 100.0 mL of 0.15 M hydrobromic acid (HBr) with 150.0 mL of 0.25 M potassium bromide (KBr). The pKa for hydrobromic acid is 4.00.
+  </Text>
+
+  <Text style={styles.solution}>Utilize the Henderson-Hasselbalch equation for buffer solutions:</Text>
+  <Text style={styles.step}>pH = pKa + log([A-]/[HA])</Text>
+  <Text>Calculate moles, concentrations, and apply the Henderson-Hasselbalch equation:</Text>
+  <Text style={styles.step}>Moles of hydrobromic acid = 0.015 mol (100.0 mL * 0.15 M)</Text>
+  <Text style={styles.step}>Moles of potassium bromide = 0.0375 mol (150.0 mL * 0.25 M)</Text>
+  <Text style={styles.step}>[HA] = 0.015 mol / 0.100 L = 0.15 M</Text>
+  <Text style={styles.step}>[A-] = 0.0375 mol / 0.150 L = 0.25 M</Text>
+  <Text style={styles.step}>pH = 4.00 + log(0.25/0.15) ≈ 4.18</Text>
+  <Text style={styles.result}>Therefore, the pH of the solution is approximately 4.18.</Text>
+</View>
+
+<View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 18:
+  </Text>
+  <Text style={styles.questionText}>
+    A 0.75 M solution of sulfuric acid (H₂SO₄) has a density of 1.85 g/mL. Calculate the molality of the solution.
+  </Text>
+
+  <Text style={styles.solution}>First, calculate the molarity of the solution:</Text>
+  <Text style={styles.step}>Molarity (M) = moles of solute / liters of solution</Text>
+  <Text>Since the density is given, you can find the volume of the solution:</Text>
+  <Text style={styles.step}>Volume = mass / density</Text>
+  <Text style={styles.step}>Volume = 1 L * 1.85 g/mL</Text>
+  <Text style={styles.step}>Volume = 1.85 L</Text>
+  <Text>Now, find moles of H₂SO₄:</Text>
+  <Text style={styles.step}>Moles = Molarity * Volume</Text>
+  <Text style={styles.step}>Moles = 0.75 M * 1.85 L</Text>
+  <Text>Next, calculate the molality:</Text>
+  <Text style={styles.step}>Molality (m) = moles of solute / kg of solvent</Text>
+  <Text style={styles.step}>Molality = 0.75 mol / (1.85 kg - 0.75 kg)</Text>
+  <Text style={styles.result}>Therefore, the molality of the solution is approximately 0.68 m.</Text>
+</View>
+
+<View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 19:
+  </Text>
+  <Text style={styles.questionText}>
+    How many milliliters of 0.20 M NaOH solution are required to neutralize 25.0 mL of 0.25 M HCl solution?
+  </Text>
+
+  <Text style={styles.solution}>Use the stoichiometry of the reaction and the balanced equation:</Text>
+  <Text style={styles.step}>NaOH + HCl → NaCl + H₂O</Text>
+  <Text>According to the equation, 1 mol of NaOH reacts with 1 mol of HCl. Therefore, moles of NaOH needed = moles of HCl:</Text>
+  <Text style={styles.step}>Moles = Molarity * Volume</Text>
+  <Text style={styles.step}>Moles of NaOH = 0.25 M * 25.0 mL</Text>
+  <Text>Now, convert moles of NaOH to milliliters using the molarity of NaOH:</Text>
+  <Text style={styles.step}>Volume = Moles / Molarity</Text>
+  <Text style={styles.step}>Volume of NaOH = (0.25 mol * 25.0 mL) / 0.20 M</Text>
+  <Text style={styles.result}>Therefore, approximately 31.25 mL of 0.20 M NaOH solution is required.</Text>
+</View>
+
+<View style={styles.problemContainer}>
+  <Text style={styles.problemText}>
+    Problem 20:
+  </Text>
+  <Text style={styles.questionText}>
+    A solution is created by mixing 100.0 mL of 0.10 M silver nitrate (AgNO₃) with 150.0 mL of 0.15 M sodium chloride (NaCl). Determine the mass of silver chloride (AgCl) formed (assuming complete reaction).
+  </Text>
+
+  <Text style={styles.solution}>Use the stoichiometry of the reaction and the balanced equation:</Text>
+  <Text style={styles.step}>AgNO₃ + NaCl → AgCl + NaNO₃</Text>
+  <Text>According to the equation, 1 mol of AgNO₃ reacts with 1 mol of NaCl to form 1 mol of AgCl. Calculate the moles of AgNO₃ and NaCl:</Text>
+  <Text style={styles.step}>Moles = Molarity * Volume</Text>
+  <Text style={styles.step}>Moles of AgNO₃ = 0.10 M * 100.0 mL</Text>
+  <Text style={styles.step}>Moles of NaCl = 0.15 M * 150.0 mL</Text>
+  <Text>Since the ratio of AgNO₃ to AgCl is 1:1, the moles of AgCl formed is the same. Now, calculate the mass of AgCl formed:</Text>
+  <Text style={styles.step}>Mass = Moles * Molar mass of AgCl</Text>
+  <Text style={styles.step}>Mass of AgCl = Moles * (107.87 g/mol + 35.45 g/mol)</Text>
+  <Text style={styles.result}>Therefore, the mass of AgCl formed is approximately 8.52 grams.</Text>
+</View>
+
 
   
 

@@ -9,7 +9,6 @@ const NuclearChemistry = () => {
   return (
     <>
     <ScrollView style={styles.container}>
-      <Text style={styles.top}>Nuclear Chemistry</Text>
       <View style={styles.questionContainer}>
         <Text style={styles.question}>Question 1:</Text>
         <Text style={styles.questionText}>Calculate the binding energy of a helium-4 nucleus given that the atomic mass is 4.0026 u.</Text>
@@ -251,6 +250,191 @@ const NuclearChemistry = () => {
   <Text style={styles.answerText}>E = 0.0001 u * 931.5 MeV/u</Text>
   <Text style={styles.answers}>≈ 0.09315 MeV</Text>
 </View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 22:</Text>
+  <Text style={styles.questionText}>If a radioactive sample has an initial activity of 2 x 10⁷ decays per second and its activity decreases to 5 x 10⁶ decays per second after 24 hours, what is the decay constant (λ)?</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the decay equation:</Text>
+  <Text style={styles.formulaText}>N(t) = N₀e^(-λt)</Text>
+  <Text style={styles.answerText}>Where N₀ = 2 x 10⁷ decays/s, N(t) = 5 x 10⁶ decays/s, and t = 24 hours.</Text>
+  <Text style={styles.answerText}>Solve for λ in the equation 5 x 10⁶ = 2 x 10⁷e^(-λ * 24)</Text>
+  <Text style={styles.answers}>≈ 0.0287 per hour</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 23:</Text>
+  <Text style={styles.questionText}>Calculate the frequency of a photon emitted during the transition of an electron from n = 3 to n = 2 energy level in a hydrogen atom. Given that the Rydberg constant is approximately 1.097 x 10⁷ per meter.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the Rydberg formula for the frequency (ν) of a photon:</Text>
+  <Text style={styles.formulaText}>ν = R_H * (1/n₁² - 1/n₂²)</Text>
+  <Text style={styles.answerText}>Where n₁ = 3, n₂ = 2, and R_H = 1.097 x 10⁷ per meter.</Text>
+  <Text style={styles.answers}>≈ 2.466 x 10¹⁵ Hz</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 24:</Text>
+  <Text style={styles.questionText}>Determine the final speed of an electron that undergoes an acceleration from rest through a potential difference of 100 volts.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the equation for the kinetic energy of a charged particle:</Text>
+  <Text style={styles.formulaText}>KE = eV</Text>
+  <Text style={styles.answerText}>Where e is the elementary charge (approximately 1.602 x 10⁻¹⁹ coulombs) and V is the potential difference (100 volts).</Text>
+  <Text style={styles.answers}>≈ 1.602 x 10⁻¹⁷ J</Text>
+  <Text style={styles.answerText}>Use the kinetic energy to find the final speed using the equation KE = (1/2)mv².</Text>
+  <Text style={styles.answers}>≈ 5.02 x 10⁶ m/s</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 25:</Text>
+  <Text style={styles.questionText}>Calculate the wavelength of a photon with energy 3.0 x 10⁻¹⁸ joules.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the energy-wavelength relationship for photons:</Text>
+  <Text style={styles.formulaText}>E = hν = hc/λ</Text>
+  <Text style={styles.answerText}>Where h is the Planck constant (approximately 6.626 x 10⁻³⁴ J·s), c is the speed of light (approximately 3.00 x 10⁸ m/s), and λ is the wavelength.</Text>
+  <Text style={styles.answers}>≈ 6.63 x 10⁻⁷ meters</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 26:</Text>
+  <Text style={styles.questionText}>A proton is accelerated through a potential difference of 500 volts. Calculate its final kinetic energy.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the equation for the kinetic energy of a charged particle:</Text>
+  <Text style={styles.formulaText}>KE = eV</Text>
+  <Text style={styles.answerText}>Where e is the elementary charge (approximately 1.602 x 10⁻¹⁹ coulombs) and V is the potential difference (500 volts).</Text>
+  <Text style={styles.answers}>≈ 8.01 x 10⁻¹⁶ J</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 27:</Text>
+  <Text style={styles.questionText}>For the nuclear reaction C-14 → N-14 + e⁻ + νₑ, calculate the Q-value of the reaction given the atomic masses of C-14, N-14, and the electron as 14.0032 u, 14.0031 u, and 0.00054857 u, respectively.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the Q-value equation for beta decay:</Text>
+  <Text style={styles.formulaText}>Q = (M_initial - M_final - me) * c²</Text>
+  <Text style={styles.answerText}>Where M_initial and M_final are the atomic masses of the initial and final nuclei, and me is the mass of the emitted electron.</Text>
+  <Text style={styles.answerText}>(14.0032 u - 14.0031 u - 0.00054857 u) * (931.5 MeV/u)</Text>
+  <Text style={styles.answers}>≈ 0.784 MeV</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 28:</Text>
+  <Text style={styles.questionText}>In the context of nuclear reactions, explain the concept of the resonance phenomenon and its significance.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Provide a detailed explanation of resonance in nuclear reactions, discussing how it affects reaction cross-sections and the conditions for resonance to occur.</Text>
+  <Text style={styles.answerText}>Discuss the importance of resonance in astrophysical processes and nuclear energy applications.</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 29:</Text>
+  <Text style={styles.questionText}>Calculate the decay constant (λ) for the radioactive isotope Ra-226, which has a half-life of 1600 years.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the relation between half-life and decay constant:</Text>
+  <Text style={styles.formulaText}>λ = ln(2) / T½</Text>
+  <Text style={styles.answerText}>Where T½ is the half-life of the isotope.</Text>
+  <Text style={styles.answerText}>λ = ln(2) / 1600 years</Text>
+  <Text style={styles.answers}>≈ 4.34 x 10⁻⁴ years⁻¹</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 30:</Text>
+  <Text style={styles.questionText}>A nuclear reactor operates with a power output of 1000 MW. If the reactor's fuel has an energy release of 200 MeV per fission event, calculate the rate of fission events per second.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the relation between power, energy, and the rate of events:</Text>
+  <Text style={styles.formulaText}>Power = Rate of events * Energy per event</Text>
+  <Text style={styles.answerText}>Convert power to energy per second and solve for the rate of fission events.</Text>
+  <Text style={styles.answers}>Rate of events ≈ 3.16 x 10¹⁷ fissions/s</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 31:</Text>
+  <Text style={styles.questionText}>Explain the concept of nuclear isomerism, citing an example of a nuclide that exhibits isomeric transitions.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Provide a detailed explanation of nuclear isomerism, discussing the characteristics of isomeric transitions, and give an example of a nuclide with isomeric states.</Text>
+  <Text style={styles.answerText}>Discuss the applications of nuclear isomers in various fields, such as medicine and industry.</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 32:</Text>
+  <Text style={styles.questionText}>Calculate the energy released in the fusion reaction between two deuterium nuclei (D) to form helium-3 (He-3) and a neutron (n). Given atomic masses of 2.0141 u, 2.0141 u, 3.0160 u, and 1.0087 u for D, D, He-3, and n, respectively.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the equation for energy released in a nuclear reaction (E = Δmc²).</Text>
+  <Text style={styles.formulaText}>Δm = (Initial mass - Final mass)</Text>
+  <Text style={styles.answerText}>Calculate the change in mass and then use E = Δmc² to find the energy released.</Text>
+  <Text style={styles.answers}>≈ 4.03 MeV</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 33:</Text>
+  <Text style={styles.questionText}>Determine the total energy released in the beta-plus decay of K-40 to Ca-40, given atomic masses of 39.9631 u and 39.9626 u, respectively.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the equation for energy released in a nuclear reaction (E = Δmc²).</Text>
+  <Text style={styles.formulaText}>Δm = (Initial mass - Final mass)</Text>
+  <Text style={styles.answerText}>= (39.9631 u - 39.9626 u)</Text>
+  <Text style={styles.answerText}>≈ 0.0005 u</Text>
+  <Text style={styles.answerText}>E = 0.0005 u * 931.5 MeV/u</Text>
+  <Text style={styles.answers}>≈ 0.47 MeV</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 34:</Text>
+  <Text style={styles.questionText}>Calculate the energy released in the alpha decay of Pu-239 to U-235, given atomic masses of 239.0522 u and 235.0439 u, respectively.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the equation for energy released in a nuclear reaction (E = Δmc²).</Text>
+  <Text style={styles.formulaText}>Δm = (Initial mass - Final mass)</Text>
+  <Text style={styles.answerText}>= (239.0522 u - 235.0439 u)</Text>
+  <Text style={styles.answerText}>≈ 4.0083 u</Text>
+  <Text style={styles.answerText}>E = 4.0083 u * 931.5 MeV/u</Text>
+  <Text style={styles.answers}>≈ 3738.9 MeV</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 35:</Text>
+  <Text style={styles.questionText}>A sample of Sr-90 has an initial activity of 2 x 10⁸ decays per second. If the half-life of Sr-90 is 28 years, calculate its activity after 50 years.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the decay equation:</Text>
+  <Text style={styles.formulaText}>N(t) = N₀e^(-λt)</Text>
+  <Text style={styles.answerText}>t = 50 years, N₀ = 2 x 10⁸ decays/s, λ = (ln2) / 28 years</Text>
+  <Text style={styles.answerText}>N(t) = 2 x 10⁸e^(-((ln2) / 28) * 50)</Text>
+  <Text style={styles.answers}>≈ 3.59 x 10⁷ decays/s</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 36:</Text>
+  <Text style={styles.questionText}>Calculate the energy released in the spontaneous fission of Cf-252 into various fission products, given an atomic mass of 252.0816 u.</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the equation for energy released in fission (E = Δmc²).</Text>
+  <Text style={styles.formulaText}>Δm = (Initial mass - Final mass)</Text>
+  <Text style={styles.answerText}>= (252.0816 u - ∑(masses of fission products))</Text>
+  <Text style={styles.answerText}>Calculate the change in mass and use E = Δmc² to find the energy released.</Text>
+  <Text style={styles.answers}>[Resulting energy in MeV]</Text>
+</View>
+
+<View style={styles.questionContainer}>
+  <Text style={styles.question}>Question 37:</Text>
+  <Text style={styles.questionText}>If a radioactive sample has an initial activity of 5 x 10¹⁰ decays per second and after 10 hours its activity decreases to 1 x 10⁸ decays per second, calculate the decay constant (λ).</Text>
+</View>
+<View style={styles.answerContainer}>
+  <Text style={styles.heading}>Use the decay equation:</Text>
+  <Text style={styles.formulaText}>N(t) = N₀e^(-λt)</Text>
+  <Text style={styles.answerText}>t = 10 hours, N₀ = 5 x 10¹⁰ decays/s, and N(t) = 1 x 10⁸ decays/s</Text>
+  <Text style={styles.answerText}>Solve for λ in the equation 1 x 10⁸ = 5 x 10¹⁰e^(-λ * 10)</Text>
+  <Text style={styles.answers}>[Resulting λ value]</Text>
+</View>
+
 
 {/* Questions 22, 23, 24, and 25 are left empty. You can fill them with your content. */}
 

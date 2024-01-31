@@ -2,54 +2,47 @@
 import React, { useState, useEffect } from 'react';
 import { Animated, TouchableHighlight, Text, StyleSheet, Dimensions, View, ImageBackground, ScrollView, Alert } from 'react-native';
 import { BackHandler } from 'react-native';
-import { BannerAd, BannerAdSize, InterstitialAd, AdEventType, TestIds, } from 'react-native-google-mobile-ads';
-
-
+import { BannerAd, BannerAdSize, InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
 const interUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-8342678716913452/3774351217';
 
 const HomeScreen = ({ navigation }) => {
-  const [loaded, setLoaded] = useState(false);
-
+  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
   const interstitial = InterstitialAd.createForAdRequest(interUnitId, {
-    requestNonPersonalizedAdsOnly: true,
-    // Add any additional request options if needed
+    keywords: ['education', 'clothing', 'schools', 'growth', 'banks'],
   });
-
 
   useEffect(() => {
     const unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      setLoaded(true);
+      setInterstitialLoaded(true);
     });
 
-    // Start loading the interstitial straight away
     interstitial.load();
 
-    // Unsubscribe from events on unmount
+    return unsubscribe;
+  }, [interstitial]);
 
-    
-return unsubscribe;
-  }, []);
-
-  const showInterstitialAd = async (screen) => {
+  const showInterstitial = () => {
     try {
-      if (loaded) {
-        await interstitial.show();
-      } else {
-        navigation.navigate(screen);
-      }
+      interstitial.show();
+      setInterstitialLoaded(false); // Reset loaded state
     } catch (error) {
-      // Handle the error as needed, e.g., show the screen directly
-      navigation.navigate(screen);
+      console.error('Error showing interstitial:', error);
     }
   };
-  
+
   const handleButtonPress = (screen) => {
-    // Show the interstitial ad after navigation or navigate directly if the ad is not loaded
-    showInterstitialAd(screen);
-    // Navigate to the selected screen
-    // navigation.navigate(screen); // Remove this line, as it's already handled in showInterstitialAd
+    if (interstitialLoaded) {
+      showInterstitial(); // Load the ad for the next use
+    }
+
+    try {
+      interstitial.load(); // Load the ad for the next use
+      navigation.navigate(screen);
+    } catch (error) {
+      console.error('Error navigating:', error);
+    }
   };
 
   const handleExitApp = () => {
@@ -62,16 +55,12 @@ return unsubscribe;
           text: 'OK',
           onPress: () => {
             BackHandler.exitApp();
-
-            // Remove the event listener here
           },
         },
       ],
       { cancelable: false }
     );
   };
-
-  
 
   return (
     <ImageBackground
@@ -82,7 +71,7 @@ return unsubscribe;
       <View style={styles.container}>
         <Text style={styles.heading}>Calculations in Chemistry</Text>
         <Text style={styles.summary}>
-          Welcome to the Chemistry Calculations App. Explore various topics in chemistry and perform calculations with ease.
+          Welcome to the Chemistry Calculations App.
         </Text>
         {/* Your existing TouchableHighlight components */}
         <TouchableHighlight underlayColor={"#004080"} style={styles.button} onPress={() => handleButtonPress('Stoichiometry')}>
@@ -109,6 +98,10 @@ return unsubscribe;
         <TouchableHighlight underlayColor={"#004080"} style={styles.button} onPress={() => handleButtonPress('ElectrolysisCalculations')}>
           <Text style={styles.buttonText}>Electrolysis</Text>
         </TouchableHighlight>
+    {/* ..    <TouchableHighlight underlayColor={"#004080"} style={styles.button} onPress={() => handleButtonPress('ChemistryCalculator')}>
+            <Text style={styles.buttonText}>Chemistry Calculator</Text>
+          </TouchableHighlight>
+          */}
       <TouchableHighlight style={styles.exitButton} underlayColor="#c0392b" onPress={handleExitApp}>
         <Text style={styles.buttonText}>Exit App</Text>
       </TouchableHighlight>

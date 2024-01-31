@@ -11,6 +11,7 @@ import Gases from './src/GasesScreen';
 import PhCalc from './src/PhCalc';
 import ThermoChemistry from './src/ThemoChem';
 import ElectrolysisCalculations from './src/Electrolysis';
+import ChemistryCalculatorScreen from './src/ChemistryCalculatorScreen';
 
 // Import other screens here
 
@@ -29,6 +30,7 @@ function AppNavigator() {
         <Stack.Screen name="PhCalculations" component={PhCalc} />
         <Stack.Screen name="ThermoChemistry" component={ThermoChemistry} />
         <Stack.Screen name='ElectrolysisCalculations' component={ElectrolysisCalculations} />
+        <Stack.Screen name='ChemistryCalculator' component={ChemistryCalculatorScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -10,7 +10,6 @@ const Gases = () => {
   return (
     <>
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Gases</Text>
 
       <View style={styles.problemContainer}>
         <View style={styles.problemTextContainer}>
@@ -215,6 +214,296 @@ const Gases = () => {
           <Text style={styles.result}>Answer: Approximately 1.41 minutes</Text>
         </View>
       </View>
+
+      <View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A sample of gas has a volume of 75.0 mL at a pressure of 1.5 atm. If the temperature remains constant, what will be the new volume if the pressure is decreased to 1.0 atm?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.equation}>P₁V₁ = P₂V₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for V₂:</Text>
+    <Text style={styles.equation}>V₂ = (P₁V₁) / P₂</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>V₂ = (1.5 atm * 75.0 mL) / 1.0 atm = 112.5 mL</Text>
+    <Text style={styles.result}>Therefore, the new volume of the gas is 112.5 mL.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas occupies a volume of 2.0 L at a pressure of 2.5 atm and a temperature of 300 K. If the volume is decreased to 1.5 L and the temperature is increased to 350 K, what will be the new pressure?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Combine Boyle's Law and Gay-Lussac's Law:</Text>
+    <Text style={styles.equation}>(P₁V₁) / T₁ = (P₂V₂) / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₂:</Text>
+    <Text style={styles.equation}>P₂ = (P₁V₁ * T₂) / (V₂ * T₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₂ = (2.5 atm * 2.0 L * 350 K) / (1.5 L * 300 K) ≈ 5.83 atm</Text>
+    <Text style={styles.result}>Therefore, the new pressure is approximately 5.83 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas undergoes an isothermal expansion, during which its volume increases from 2.5 L to 4.0 L. If the final pressure is 1.2 atm, what was the initial pressure?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For an isothermal process, we can use Boyle's Law:</Text>
+    <Text style={styles.equation}>P₁V₁ = P₂V₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₁:</Text>
+    <Text style={styles.equation}>P₁ = (P₂V₂) / V₁</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₁ = (1.2 atm * 4.0 L) / 2.5 L = 1.92 atm</Text>
+    <Text style={styles.result}>Therefore, the initial pressure was 1.92 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A 2.0 L container holds a mixture of oxygen (O₂) and nitrogen (N₂) gases. If the partial pressure of oxygen is 0.8 atm, what is the partial pressure of nitrogen if the total pressure is 1.5 atm?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Use Dalton's Law of Partial Pressures:</Text>
+    <Text style={styles.equation}>Ptotal = PO₂ + PN₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for PN₂:</Text>
+    <Text style={styles.equation}>PN₂ = Ptotal - PO₂</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>PN₂ = 1.5 atm - 0.8 atm = 0.7 atm</Text>
+    <Text style={styles.result}>Therefore, the partial pressure of nitrogen is 0.7 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas sample has an initial volume of 3.0 L, a pressure of 2.0 atm, and a temperature of 273 K. If the final volume is 2.0 L and the temperature is increased to 298 K, what is the final pressure?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Apply the combined gas law:</Text>
+    <Text style={styles.equation}>(P₁V₁) / T₁ = (P₂V₂) / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₂:</Text>
+    <Text style={styles.equation}>P₂ = (P₁V₁ * T₂) / (V₂ * T₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₂ = (2.0 atm * 3.0 L * 298 K) / (2.0 L * 273 K) ≈ 4.37 atm</Text>
+    <Text style={styles.result}>Therefore, the final pressure is approximately 4.37 atm.</Text>
+  </View>
+</View>
+
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas is confined in a container with an initial volume of 2.5 L, a pressure of 3.0 atm, and a temperature of 25°C. If the gas undergoes an isochoric process, what will be the final pressure if the temperature is increased to 50°C?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For an isochoric process, the volume remains constant, so we use Gay-Lussac's Law:</Text>
+    <Text style={styles.equation}>P₁ / T₁ = P₂ / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₂:</Text>
+    <Text style={styles.equation}>P₂ = P₁ * (T₂ / T₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₂ = 3.0 atm * (298 K / 273 K) ≈ 3.28 atm</Text>
+    <Text style={styles.result}>Therefore, the final pressure is approximately 3.28 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas occupies a volume of 1.0 L at a pressure of 2.0 atm and a temperature of 273 K. If the gas undergoes an isobaric process and expands to 1.5 L, what will be the final temperature?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For an isobaric process, the pressure remains constant, so we use Charles's Law:</Text>
+    <Text style={styles.equation}>V₁ / T₁ = V₂ / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for T₂:</Text>
+    <Text style={styles.equation}>T₂ = T₁ * (V₂ / V₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>T₂ = 273 K * (1.5 L / 1.0 L) ≈ 409.5 K</Text>
+    <Text style={styles.result}>Therefore, the final temperature is approximately 409.5 K.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A mixture of gases contains 0.2 moles of helium (He) and 0.3 moles of neon (Ne) in a 2.0 L container. If the temperature is 300 K, what is the total pressure of the mixture using the ideal gas law?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Apply the ideal gas law:</Text>
+    <Text style={styles.equation}>PV = nRT</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P:</Text>
+    <Text style={styles.equation}>P = (n₁ + n₂) * R * T / V</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P = (0.2 moles + 0.3 moles) * 0.08206 L atm / mol K * 300 K / 2.0 L ≈ 0.98 atm</Text>
+    <Text style={styles.result}>Therefore, the total pressure of the mixture is approximately 0.98 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas undergoes an adiabatic process, and its initial temperature is 400 K. If the volume doubles, what will be the final temperature?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For an adiabatic process, the equation relating initial and final temperatures and volumes is:</Text>
+    <Text style={styles.equation}>T₂ = T₁ * (V₁ / V₂)^(γ-1)</Text>
+    <Text style={styles.answerText}>For diatomic gases, γ (gamma) is approximately 1.4.</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>T₂ = 400 K * (1/2)^(1.4-1) ≈ 282 K</Text>
+    <Text style={styles.result}>Therefore, the final temperature is approximately 282 K.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas mixture in a 3.0 L container contains 0.4 moles of nitrogen (N₂) and 0.6 moles of hydrogen (H₂). If the temperature is 350 K, what is the partial pressure of nitrogen using Dalton's Law?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Use Dalton's Law of Partial Pressures:</Text>
+    <Text style={styles.equation}>Ptotal = PN₂ + PH₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for PN₂:</Text>
+    <Text style={styles.equation}>PN₂ = Ptotal - PH₂</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>PN₂ = (0.4 moles / 1.0 mole) * 0.08206 L atm / mol K * 350 K * 3.0 L - (0.6 moles / 1.0 mole) * 0.08206 L atm / mol K * 350 K * 3.0 L ≈ 0.85 atm</Text>
+    <Text style={styles.result}>Therefore, the partial pressure of nitrogen is approximately 0.85 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A sample of gas is initially at 2.0 atm and 27°C. If the pressure is increased to 3.0 atm and the temperature is raised to 327 K, what is the final volume of the gas using the combined gas law?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Apply the combined gas law:</Text>
+    <Text style={styles.equation}>(P₁ * V₁) / T₁ = (P₂ * V₂) / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for V₂:</Text>
+    <Text style={styles.equation}>V₂ = (P₁ * V₁ * T₂) / (P₂ * T₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>V₂ = (2.0 atm * V₁ * 327 K) / (3.0 atm * 300 K) ≈ 2.18 V₁</Text>
+    <Text style={styles.result}>Therefore, the final volume is approximately 2.18 times the initial volume.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas follows the Van der Waals equation: (P + a(n^2/V^2)) * (V - nb) = nRT. If 2 moles of the gas are in a 2.5 L container at 300 K and 2.0 atm, what is the value of 'a'?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Use the Van der Waals equation and solve for 'a':</Text>
+    <Text style={styles.equation}>a = (P + a(n^2/V^2)) * (V - nb) / (nRT) - P / (n/V)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>a = (2.0 atm * (2.5 L)^2) / (2 moles * 300 K * (2.5 L)^2) - 2.0 atm / (2 moles / 2.5 L) ≈ 0.019 L^2/atm/mol</Text>
+    <Text style={styles.result}>Therefore, the value of 'a' is approximately 0.019 L^2/atm/mol.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A real gas is initially at 5.0 atm and 300 K. If the gas expands isothermally to three times its initial volume, what is the final pressure using the van der Waals equation?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>Apply the van der Waals equation for an isothermal process:</Text>
+    <Text style={styles.equation}>(P + a(n^2/V^2)) * (V - nb) = nRT</Text>
+    <Text style={styles.answerText}>For an isothermal process, the equation simplifies to:</Text>
+    <Text style={styles.equation}>P + a(n^2/V^2) = nRT / (V - nb)</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P:</Text>
+    <Text style={styles.equation}>P = nRT / (V - nb) - a(n^2/V^2)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P = 5.0 atm / (3 * 300 K / (3 - 2 * (3 * 2.5 L))) - 0.019 L^2/atm/mol * (3^2 / (3 * 2.5 L)^2) ≈ 1.8 atm</Text>
+    <Text style={styles.result}>Therefore, the final pressure is approximately 1.8 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas undergoes an isothermal process in which its initial volume is 4.0 L, and its final volume is 8.0 L. If the pressure is initially 2.0 atm, what will be the final pressure?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For an isothermal process, use Boyle's Law:</Text>
+    <Text style={styles.equation}>P₁ * V₁ = P₂ * V₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₂:</Text>
+    <Text style={styles.equation}>P₂ = P₁ * (V₁ / V₂)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₂ = 2.0 atm * (4.0 L / 8.0 L) = 1.0 atm</Text>
+    <Text style={styles.result}>Therefore, the final pressure is 1.0 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas is initially at a pressure of 4.0 atm and a temperature of 300 K. If the gas is compressed to half its initial volume, what will be the final temperature according to Boyle's Law?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For an isothermal process, use Boyle's Law:</Text>
+    <Text style={styles.equation}>P₁ * V₁ = P₂ * V₂</Text>
+    <Text style={styles.answerText}>Since the process is isothermal, the temperature remains constant, and we can write:</Text>
+    <Text style={styles.equation}>P₁ / T = P₂ / T</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for T₂:</Text>
+    <Text style={styles.equation}>T₂ = P₂ * (T₁ / P₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>T₂ = 4.0 atm * (300 K / 2.0 atm) = 600 K</Text>
+    <Text style={styles.result}>Therefore, the final temperature is 600 K.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A sample of gas has an initial volume of 1.0 L, a pressure of 2.0 atm, and a temperature of 273 K. If the gas expands isothermally to twice its initial volume, what is the final pressure?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For an isothermal process, use Boyle's Law:</Text>
+    <Text style={styles.equation}>P₁ * V₁ = P₂ * V₂</Text>
+    <Text style={styles.answerText}>Since the process is isothermal, the temperature remains constant, and we can write:</Text>
+    <Text style={styles.equation}>P₁ / T = P₂ / T</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₂:</Text>
+    <Text style={styles.equation}>P₂ = P₁ * (V₁ / V₂)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₂ = 2.0 atm * (1.0 L / 2.0 L) = 1.0 atm</Text>
+    <Text style={styles.result}>Therefore, the final pressure is 1.0 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas is initially at a pressure of 3.0 atm and a temperature of 400 K. If the gas is cooled at constant volume to a temperature of 200 K, what will be the final pressure according to Gay-Lussac's Law?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For constant volume (isochoric process), use Gay-Lussac's Law:</Text>
+    <Text style={styles.equation}>P₁ / T₁ = P₂ / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₂:</Text>
+    <Text style={styles.equation}>P₂ = P₁ * (T₂ / T₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₂ = 3.0 atm * (200 K / 400 K) = 1.5 atm</Text>
+    <Text style={styles.result}>Therefore, the final pressure is 1.5 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas is initially at a pressure of 1.5 atm and a temperature of 300 K. If the gas is heated at constant volume to a temperature of 600 K, what will be the final pressure according to Gay-Lussac's Law?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For constant volume (isochoric process), use Gay-Lussac's Law:</Text>
+    <Text style={styles.equation}>P₁ / T₁ = P₂ / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for P₂:</Text>
+    <Text style={styles.equation}>P₂ = P₁ * (T₂ / T₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>P₂ = 1.5 atm * (600 K / 300 K) = 3.0 atm</Text>
+    <Text style={styles.result}>Therefore, the final pressure is 3.0 atm.</Text>
+  </View>
+</View>
+
+<View style={styles.problemContainer}>
+  <View style={styles.questBack}>
+    <Text style={styles.problemText}>A gas is initially at a pressure of 2.0 atm and a temperature of 400 K. If the gas is cooled at constant pressure to a temperature of 200 K, what will be the final volume according to Charles's Law?</Text>
+  </View>
+  <View style={styles.solutionContainer}>
+    <Text style={styles.lawText}>For constant pressure (isobaric process), use Charles's Law:</Text>
+    <Text style={styles.equation}>V₁ / T₁ = V₂ / T₂</Text>
+    <Text style={styles.answerText}>We can rearrange this equation to solve for V₂:</Text>
+    <Text style={styles.equation}>V₂ = V₁ * (T₂ / T₁)</Text>
+    <Text style={styles.answerText}>Plugging in the known values, we get:</Text>
+    <Text style={styles.answerText}>V₂ = 2.0 L * (200 K / 400 K) = 1.0 L</Text>
+    <Text style={styles.result}>Therefore, the final volume is 1.0 L.</Text>
+  </View>
+</View>
+
+
 
 
       <View style={styles.problemContainer}>

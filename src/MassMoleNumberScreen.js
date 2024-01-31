@@ -9,7 +9,6 @@ const MassMoleNumberScreen = () => {
   return (
     <>
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Mass Mole Number</Text>
       <View style={styles.problemContainer}>
         <Text style={styles.problemStatement}>
           Calculate the number of moles in 25 grams of water (H2O).
@@ -138,6 +137,200 @@ const MassMoleNumberScreen = () => {
           Mass = 1.5 moles * 46.07g/mol ≈ 69.11 grams
         </Text>
       </View>
+
+      <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Determine the number of moles in 125 grams of acetic acid (CH3COOH).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of acetic acid (CH3COOH) is approximately 60.05g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Number of moles = 125g / 60.05g/mol ≈ 2.082 moles
+    </Text>
+  </View>
+
+  {/* Question 12 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Find the mass of 4 moles of magnesium nitrate [Mg(NO3)2].
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of magnesium nitrate [Mg(NO3)2] is approximately 148.32g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 4 moles * 148.32g/mol ≈ 593.28 grams
+    </Text>
+  </View>
+
+  {/* Question 13 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Calculate the mass of 2.75 moles of copper(II) sulfate (CuSO4).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of copper(II) sulfate (CuSO4) is approximately 159.61g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 2.75 moles * 159.61g/mol ≈ 439.27 grams
+    </Text>
+  </View>
+
+  {/* Question 14 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      How many moles are present in 85 grams of aluminum chloride (AlCl3)?
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of aluminum chloride (AlCl3) is approximately 133.34g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Number of moles = 85g / 133.34g/mol ≈ 0.637 moles
+    </Text>
+  </View>
+
+  {/* Question 15 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Determine the mass of 3.5 moles of dinitrogen pentoxide (N2O5).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of dinitrogen pentoxide (N2O5) is approximately 108.01g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 3.5 moles * 108.01g/mol ≈ 378.03 grams
+    </Text>
+  </View>
+
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Calculate the number of moles in 500 grams of silver nitrate (AgNO3).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of silver nitrate (AgNO3) is approximately 169.87g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Number of moles = 500g / 169.87g/mol ≈ 2.946 moles
+    </Text>
+  </View>
+
+  {/* Question 17 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Determine the mass of 6 moles of hydrogen peroxide (H2O2).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of hydrogen peroxide (H2O2) is approximately 34.02g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 6 moles * 34.02g/mol ≈ 204.12 grams
+    </Text>
+  </View>
+
+  {/* Question 18 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      How many grams are there in 2 moles of phosphorus pentachloride (PCl5)?
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of phosphorus pentachloride (PCl5) is approximately 208.24g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 2 moles * 208.24g/mol ≈ 416.48 grams
+    </Text>
+  </View>
+
+  {/* Question 19 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Calculate the mass of 4.5 moles of sodium carbonate (Na2CO3).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of sodium carbonate (Na2CO3) is approximately 105.99g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 4.5 moles * 105.99g/mol ≈ 477.46 grams
+    </Text>
+  </View>
+
+  {/* Question 20 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Determine the number of moles in 150 grams of barium sulfate (BaSO4).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of barium sulfate (BaSO4) is approximately 233.39g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Number of moles = 150g / 233.39g/mol ≈ 0.643 moles
+    </Text>
+  </View>
+
+  {/* Question 21 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      How many moles are present in 75 grams of potassium hydroxide (KOH)?
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of potassium hydroxide (KOH) is approximately 56.11g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Number of moles = 75g / 56.11g/mol ≈ 1.336 moles
+    </Text>
+  </View>
+
+  {/* Question 22 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Calculate the mass of 3.25 moles of nitric acid (HNO3).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of nitric acid (HNO3) is approximately 63.01g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 3.25 moles * 63.01g/mol ≈ 204.26 grams
+    </Text>
+  </View>
+
+  {/* Question 23 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Determine the number of moles in 100 grams of calcium hydroxide (Ca(OH)2).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of calcium hydroxide (Ca(OH)2) is approximately 74.09g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Number of moles = 100g / 74.09g/mol ≈ 1.349 moles
+    </Text>
+  </View>
+
+  {/* Question 24 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      Calculate the mass of 5.5 moles of diphosphorus pentoxide (P4O10).
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of diphosphorus pentoxide (P4O10) is approximately 283.89g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 5.5 moles * 283.89g/mol ≈ 1561.395 grams
+    </Text>
+  </View>
+
+  {/* Question 25 */}
+  <View style={styles.problemContainer}>
+    <Text style={styles.problemStatement}>
+      How many grams are there in 2.75 moles of sulfur hexafluoride (SF6)?
+    </Text>
+    <Text style={styles.infoText}>
+      The molar mass of sulfur hexafluoride (SF6) is approximately 146.06g/mol.
+    </Text>
+    <Text style={styles.result}>
+      Mass = 2.75 moles * 146.06g/mol ≈ 401.915 grams
+    </Text>
+  </View>
+
 
       {/* Add more questions and solutions here */}
     </ScrollView>

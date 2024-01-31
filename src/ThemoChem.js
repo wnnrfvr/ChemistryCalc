@@ -463,6 +463,215 @@ const ThermoChemistry = () => {
 
       </View>
 
+      <View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>Calculate the final temperature when 150 g of copper at 80°C is placed in 250 g of oil at 20°C.</Text>
+    <Text style={styles.questionText}>(Given: specific heat capacity of copper = 0.385 J/g°C, specific heat capacity of oil = 2.1 J/g°C)</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>To calculate the final temperature, we can use the equation:</Text>
+    <Text style={styles.formula}>Q_copper + Q_oil = 0</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>Q_copper is the heat lost by copper</Text>
+    <Text style={styles.solution}>Q_oil is the heat gained by oil</Text>
+    <Text style={styles.solution}>Setting Q_copper equal to Q_oil, we have:</Text>
+    <Text style={styles.formula}>m_copper * c_copper * ΔT_copper = m_oil * c_oil * ΔT_oil</Text>
+    <Text style={styles.solution}>Substituting the given values:</Text>
+    <Text style={styles.formula}>(150 g)(0.385 J/g°C)(T_final - 80°C) = (250 g)(2.1 J/g°C)(T_final - 20°C)</Text>
+    <Text style={styles.solution}>Solving for T_final:</Text>
+    <Text style={styles.formula}>T_final ≈ 37.9°C</Text>
+    <Text style={styles.explanation}>Therefore, the final temperature is approximately 37.9°C.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>Calculate the change in internal energy (ΔU) for a system that releases 200 J of heat and does 100 J of work on the surroundings.</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>The change in internal energy (ΔU) can be calculated using the equation:</Text>
+    <Text style={styles.formula}>ΔU = Q - W</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>ΔU is the change in internal energy (J)</Text>
+    <Text style={styles.solution}>Q is the heat released by the system (J)</Text>
+    <Text style={styles.solution}>W is the work done on the surroundings (J)</Text>
+    <Text style={styles.solution}>Substituting the given values:</Text>
+    <Text style={styles.formula}>ΔU = 200 J - 100 J = 100 J</Text>
+    <Text style={styles.explanation}>Therefore, the change in internal energy for the system is 100 J.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>Calculate the standard Gibbs free energy change (ΔG∘) for the reaction:</Text>
+    <Text style={styles.chemicalEquation}>2A(g) + 3B(s) == 4C(l)</Text>
+    <Text style={styles.questionText}>(Given: ΔH∘ = 150 kJ/mol, ΔS∘ = -80 J/(mol·K), T = 298 K)</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>To calculate ΔG∘, use the equation:</Text>
+    <Text style={styles.formula}>ΔG∘ = ΔH∘ - TΔS∘</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>ΔG∘ is the standard Gibbs free energy change (kJ/mol)</Text>
+    <Text style={styles.solution}>ΔH∘ is the standard enthalpy change (kJ/mol)</Text>
+    <Text style={styles.solution}>ΔS∘ is the standard entropy change (J/(mol·K))</Text>
+    <Text style={styles.solution}>T is the temperature (K)</Text>
+    <Text style={styles.solution}>Substituting the known values:</Text>
+    <Text style={styles.formula}>ΔG∘ = 150 kJ/mol - (298 K)(-80 J/(mol·K))</Text>
+    <Text style={styles.solution}>ΔG∘ ≈ 17470 J/mol (or 17.47 kJ/mol)</Text>
+    <Text style={styles.explanation}>Therefore, the standard Gibbs free energy change for the reaction is approximately 17.47 kJ/mol.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>Calculate the final temperature when 80 g of silver at 100°C is added to 150 g of water at 20°C.</Text>
+    <Text style={styles.questionText}>(Given: specific heat capacity of silver = 0.24 J/g°C, specific heat capacity of water = 4.18 J/g°C)</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>To find the final temperature, we use the equation:</Text>
+    <Text style={styles.formula}>Q_silver + Q_water = 0</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>Q_silver is the heat lost by silver</Text>
+    <Text style={styles.solution}>Q_water is the heat gained by water</Text>
+    <Text style={styles.solution}>Setting Q_silver equal to Q_water:</Text>
+    <Text style={styles.formula}>m_silver * c_silver * ΔT_silver = m_water * c_water * ΔT_water</Text>
+    <Text style={styles.solution}>Substituting the given values:</Text>
+    <Text style={styles.formula}>(80 g)(0.24 J/g°C)(T_final - 100°C) = (150 g)(4.18 J/g°C)(T_final - 20°C)</Text>
+    <Text style={styles.solution}>Solving for T_final:</Text>
+    <Text style={styles.formula}>T_final ≈ 25.1°C</Text>
+    <Text style={styles.explanation}>Therefore, the final temperature is approximately 25.1°C.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>Calculate the standard enthalpy change (ΔH∘) for the reaction:</Text>
+    <Text style={styles.chemicalEquation}>3X(g) + 2Y(l) == 5Z(s)</Text>
+    <Text style={styles.questionText}>(Given: ΔG∘ = -120 kJ/mol, ΔS∘ = 80 J/(mol·K), T = 300 K)</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>The standard enthalpy change (ΔH∘) can be calculated using the equation:</Text>
+    <Text style={styles.formula}>ΔH∘ = ΔG∘ + TΔS∘</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>ΔH∘ is the standard enthalpy change (kJ/mol)</Text>
+    <Text style={styles.solution}>ΔG∘ is the standard Gibbs free energy change (kJ/mol)</Text>
+    <Text style={styles.solution}>T is the temperature (K)</Text>
+    <Text style={styles.solution}>ΔS∘ is the standard entropy change (J/(mol·K))</Text>
+    <Text style={styles.solution}>Substituting the known values:</Text>
+    <Text style={styles.formula}>ΔH∘ = -120 kJ/mol + (300 K)(80 J/(mol·K))</Text>
+    <Text style={styles.solution}>ΔH∘ ≈ -96 kJ/mol</Text>
+    <Text style={styles.explanation}>Therefore, the standard enthalpy change for the reaction is approximately -96 kJ/mol.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>A piston expands isothermally and reversibly, doing 150 J of work. Calculate the heat absorbed by the system.</Text>
+    <Text style={styles.questionText}>(Given: Isothermal and reversible process)</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>For an isothermal and reversible process, the heat absorbed (Q) can be calculated using the equation:</Text>
+    <Text style={styles.formula}>Q = W</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>Q is the heat absorbed (J)</Text>
+    <Text style={styles.solution}>W is the work done by the system (J)</Text>
+    <Text style={styles.solution}>Given that the piston does 150 J of work:</Text>
+    <Text style={styles.formula}>Q = 150 J</Text>
+    <Text style={styles.explanation}>Therefore, the heat absorbed by the system is 150 J.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>A chemical reaction has a ΔG value of +20 kJ/mol at 25°C. Determine the equilibrium constant (K) for the reaction.</Text>
+    <Text style={styles.questionText}>(Given: T = 298 K)</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>The equilibrium constant (K) can be determined using the relationship between ΔG and K:</Text>
+    <Text style={styles.formula}>ΔG = -RTln(K)</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>ΔG is the Gibbs free energy change (J/mol)</Text>
+    <Text style={styles.solution}>R is the ideal gas constant (8.31 J/(mol·K))</Text>
+    <Text style={styles.solution}>T is the temperature (K)</Text>
+    <Text style={styles.solution}>K is the equilibrium constant</Text>
+    <Text style={styles.solution}>Solving for K:</Text>
+    <Text style={styles.formula}>K = e^(-ΔG/RT)</Text>
+    <Text style={styles.solution}>Substituting the given values:</Text>
+    <Text style={styles.formula}>K ≈ e^(-20,000 J/(mol) / (8.31 J/(mol·K) * 298 K))</Text>
+    <Text style={styles.solution}>K ≈ e^(-8.09)</Text>
+    <Text style={styles.solution}>K ≈ 0.0003</Text>
+    <Text style={styles.explanation}>Therefore, the equilibrium constant (K) for the reaction is approximately 0.0003.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>Calculate the pH of a solution with a hydrogen ion concentration [H⁺] of 1 x 10⁻⁵ M.</Text>
+    <Text style={styles.questionText}>(Given: pH = -log[H⁺])</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>The pH of a solution can be calculated using the equation:</Text>
+    <Text style={styles.formula}>pH = -log[H⁺]</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>pH is the negative logarithm of the hydrogen ion concentration [H⁺]</Text>
+    <Text style={styles.solution}>Given that [H⁺] = 1 x 10⁻⁵ M:</Text>
+    <Text style={styles.formula}>pH = -log(1 x 10⁻⁵)</Text>
+    <Text style={styles.solution}>Using logarithm properties, pH ≈ 5</Text>
+    <Text style={styles.explanation}>Therefore, the pH of the solution is approximately 5.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>Calculate the work done when a gas expands against a constant external pressure of 2 atm from a volume of 5 L to 10 L.</Text>
+    <Text style={styles.questionText}>(Given: 1 atm = 101.325 J/L·atm)</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>The work done (W) during expansion against a constant external pressure can be calculated using the equation:</Text>
+    <Text style={styles.formula}>W = -PextΔV</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>W is the work done (J)</Text>
+    <Text style={styles.solution}>Pext is the external pressure (atm)</Text>
+    <Text style={styles.solution}>ΔV is the change in volume (L)</Text>
+    <Text style={styles.solution}>Substituting the given values:</Text>
+    <Text style={styles.formula}>W = -(2 atm)(101.325 J/L·atm)(10 L - 5 L)</Text>
+    <Text style={styles.solution}>W = -1013.25 J</Text>
+    <Text style={styles.explanation}>Therefore, the work done during the expansion is -1013.25 J.</Text>
+  </View>
+</View>
+
+<View style={styles.card}>
+  <View style={styles.questionCont}>
+    <Text style={styles.questionText}>A reaction has an activation energy of 50 kJ/mol. Calculate the rate constant (k) at 25°C. </Text>
+    <Text style={styles.questionText}>(Given: R = 8.31 J/(mol·K))</Text>
+  </View>
+
+  <View style={styles.answerCont}>
+    <Text style={styles.explanation}>The rate constant (k) for a reaction can be calculated using the Arrhenius equation:</Text>
+    <Text style={styles.formula}>k = Ae^(-Ea/RT)</Text>
+    <Text style={styles.solution}>where:</Text>
+    <Text style={styles.solution}>k is the rate constant</Text>
+    <Text style={styles.solution}>A is the pre-exponential factor (frequency factor)</Text>
+    <Text style={styles.solution}>Ea is the activation energy (J/mol)</Text>
+    <Text style={styles.solution}>R is the ideal gas constant (8.31 J/(mol·K))</Text>
+    <Text style={styles.solution}>T is the temperature (K)</Text>
+    <Text style={styles.solution}>Substituting the given values:</Text>
+    <Text style={styles.formula}>k = A * e^(-50,000 J/(mol) / (8.31 J/(mol·K) * 298 K))</Text>
+    <Text style={styles.solution}>Assuming A = 1 (for simplicity), k ≈ 7.12 x 10^(-4) s^(-1)</Text>
+    <Text style={styles.explanation}>Therefore, the rate constant (k) at 25°C is approximately 7.12 x 10^(-4) s^(-1).</Text>
+  </View>
+</View>
+
+
     </ScrollView>
     <View style={styles.adContainer}>
         <BannerAd
