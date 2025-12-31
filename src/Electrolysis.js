@@ -1,794 +1,324 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+// Electrolysis.js - Premium Electric/Lightning Theme
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  Animated, Dimensions, Platform
+} from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BannerAd, BannerAdSize } from './components/AdMobWrapper';
+import { generateQuestion, difficultyLevels } from './electrolysisQuestionsData';
+import { ShareManager } from './ShareManager';
+import { AdManager } from './AdManager';
+import { GamificationManager } from './GamificationManager';
 
-const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
+const { width } = Dimensions.get('window');
 
-const ElectrolysisCalculations = () => {
-  
+// Electric Theme
+const THEME = {
+  background: '#0A0C10',
+  card: '#12151C',
+  cardBorder: '#1E2430',
+  accent: '#FACC15',
+  accentAlt: '#F59E0B',
+  text: '#FFFFFF',
+};
+
+const constants = { faraday: 96500 };
+
+const ElectrolysisScreen = () => {
+  const [questions, setQuestions] = useState([]);
+  const [expandedIndex, setExpandedIndex] = useState(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [questionCount, setQuestionCount] = useState(10);
+  const [solutionsViewed, setSolutionsViewed] = useState(0);
+  const sparkAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    generateQuestions();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+
+    // Spark animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(sparkAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(sparkAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const generateQuestions = () => {
+    const questionTypes = ['massDeposited', 'timeRequired', 'currentRequired', 'gasVolume', 'chargeCalculation'];
+    const newQuestions = [];
+    for (let i = 0; i < 55; i++) {
+      const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+      newQuestions.push({
+        ...generateQuestion(type),
+        id: i,
+        bookmarked: false,
+        attempted: false,
+        electrode: ['anode', 'cathode'][Math.floor(Math.random() * 2)]
+      });
+    }
+    setQuestions(newQuestions);
+  };
+
+  const toggleExpand = (index) => {
+    if (expandedIndex === index) {
+      setExpandedIndex(null);
+    } else {
+      setExpandedIndex(index);
+      setSolutionsViewed(prev => {
+        const newCount = prev + 1;
+        if (AdManager.onCalculationComplete()) {
+          AdManager.showInterstitial();
+        }
+        GamificationManager.addXP(10);
+        GamificationManager.recordAction('SOLVE', 'ElectrolysisCalculations');
+        return newCount;
+      });
+      setQuestions(prev => {
+        const updated = [...prev];
+        updated[index].attempted = true;
+        return updated;
+      });
+    }
+  };
+
+  const bookmarkQuestion = (index) => {
+    setQuestions(prev => {
+      const updated = [...prev];
+      updated[index].bookmarked = !updated[index].bookmarked;
+      return updated;
+    });
+  };
+
+  const filteredQuestions = selectedDifficulty === 'all'
+    ? questions
+    : questions.filter(q => q.difficulty === selectedDifficulty);
+
+  const displayedQuestions = filteredQuestions.slice(0, questionCount);
+
+  const getDifficultyColor = (diff) => {
+    const colors = { beginner: '#10B981', intermediate: '#F59E0B', advanced: '#EF4444' };
+    return colors[diff] || '#888';
+  };
 
   return (
-    <>
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <LinearGradient colors={['#0A0C10', '#12151C', '#1A1E28']} style={StyleSheet.absoluteFill} />
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>
-          How much copper gets plated at the cathode when using 1.0 A current for 30 minutes in a copper sulfate solution? (Faraday constant: 96500 C/mol)
-        </Text>
-      
-        <Text style={styles.subHeader}>Calculate the Total Charge (Q)</Text>
-        <Text style={styles.formula}>Q = I * t</Text>
-        <Text>Q = 1.0 A * 30 minutes * 60 seconds/minute</Text>
-        <Text>Q = 1800 C</Text>
-        
-        <Text style={styles.subHeader}>Find the Moles of Electrons (n)</Text>
-        <Text style={styles.formula}>n = Q / F</Text>
-        <Text>n = 1800 C / 96500 C/mol</Text>
-        <Text>n = 0.0186 mol</Text>
-        
-        <Text style={styles.subHeader}>Determine the Mass of Deposited Copper</Text>
-        <Text>The half-reaction for copper deposition is:</Text>
-        <Text>Cu²⁺ + 2e⁻ == Cu</Text>
-        <Text>This means that 2 moles of electrons are needed to deposit 1 mole of copper.</Text>
-        <Text>mass of copper = 0.0186 mol * (63.55 g/mol)</Text>
-        <Text>mass of copper = 1.15 g</Text>
-        <Text style={styles.answr}>So, about 1.15 grams of copper will be deposited at the cathode.</Text>
-      </View>
+      <Animated.ScrollView style={{ opacity: fadeAnim }} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <LinearGradient colors={['#FACC15', '#F59E0B', '#D97706']} style={styles.header}>
+          <View style={styles.headerContent}>
+            <Animated.View style={{ opacity: sparkAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }}>
+              <MaterialCommunityIcons name="lightning-bolt" size={40} color="#FFF" />
+            </Animated.View>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Electrolysis</Text>
+              <Text style={styles.headerSubtitle}>Faraday's laws in action</Text>
+            </View>
+          </View>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What volume of hydrogen gas is produced at the cathode during the electrolysis of water using a current of 2.0 A for 1 hour, if the molar volume of a gas at room temperature and pressure is 24 dm³/mol?</Text>
-      
-        <Text style= {styles.subHeader}>Calculate the quantity of electricity</Text>
-        <Text style={styles.formula}>Q = I * t</Text>
-        <Text>Q = 2.0 A * 1 hour * 60 seconds/minute</Text>
-        <Text>Q = 7200 C</Text>
-        <Text style = {styles.subHeader}>Calculate the number of moles of electrons transferred</Text>
-        <Text style={styles.formula}>n = Q / F</Text>
-        <Text>n = 7200 C / 96500 C/mol</Text>
-        <Text>n = 0.0748 mol</Text>
-        <Text style = {styles.subHeader}>Calculate the volume of hydrogen gas produced</Text>
-        <Text>The half-reaction for the production of hydrogen gas at the cathode is:</Text>
-        <Text>2H⁺ + 2e⁻ == H₂</Text>
-        <Text>This means that 2 moles of electrons are required to produce 1 mole of hydrogen gas.</Text>
-        <Text>volume of hydrogen gas = 0.0748 mol * (24 dm³/mol)</Text>
-        <Text>volume of hydrogen gas = 1.80 dm³</Text>
-        <Text style={styles.answr}>Therefore, the volume of hydrogen gas produced at the cathode is 1.80 dm³.</Text>
-      </View>
+          <View style={styles.statsRow}>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>{questions.filter(q => q.attempted).length}</Text>
+              <Text style={styles.statLabel}>Solved</Text>
+            </View>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>+{solutionsViewed * 10}</Text>
+              <Text style={styles.statLabel}>XP</Text>
+            </View>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>{questions.length}</Text>
+              <Text style={styles.statLabel}>Total</Text>
+            </View>
+          </View>
+        </LinearGradient>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What quantity of electricity is required to produce 10.0 g of chlorine gas during the electrolysis of molten sodium chloride?</Text>
-      
-        <Text style = {styles.subHeader}>Calculate the number of moles of chlorine gas produced</Text>
-        <Text style={styles.formula}>n = mass / molar mass</Text>
-        <Text>n = 10.0 g / 70.90 g/mol</Text>
-        <Text>n = 0.141 mol</Text>
-        <Text style = {styles.subHeader}>Calculate the quantity of electricity required</Text>
-        <Text>The half-reaction for the production of chlorine gas at the anode is:</Text>
-        <Text style={styles.formula}>2Cl⁻ == Cl₂ + 2e⁻</Text>
-        <Text>This means that 2 moles of electrons are required to produce 1 mole of chlorine gas.</Text>
-        <Text style={styles.formula}>Q = n * F</Text>
-        <Text>Q = 0.141 mol * 96500 C/mol</Text>
-        <Text>Q = 13500 C</Text>
-        <Text style={styles.answr}>Therefore, the quantity of electricity required to produce 10.0 g of chlorine gas is 13500 C.</Text>
-      </View>
+        {/* Formula Bar */}
+        <View style={styles.formulaBar}>
+          <View style={styles.formulaItem}>
+            <Text style={styles.formulaLabel}>Faraday's Law</Text>
+            <Text style={styles.formulaText}>m = (M × I × t) / (n × F)</Text>
+          </View>
+        </View>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>How many grams of chlorine gas can be obtained by the electrolysis of 4 L of 0.7 M NaCl solution? (Molar mass of Cl₂ = 70.90 g/mol)</Text>
+        {/* Filter */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          <TouchableOpacity
+            style={[styles.filterChip, selectedDifficulty === 'all' && styles.filterChipActive]}
+            onPress={() => setSelectedDifficulty('all')}
+          >
+            <Text style={[styles.filterText, selectedDifficulty === 'all' && styles.filterTextActive]}>All</Text>
+          </TouchableOpacity>
+          {Object.entries(difficultyLevels).map(([key, level]) => (
+            <TouchableOpacity
+              key={key}
+              style={[styles.filterChip, selectedDifficulty === key && styles.filterChipActive]}
+              onPress={() => setSelectedDifficulty(key)}
+            >
+              <Text style={[styles.filterText, selectedDifficulty === key && styles.filterTextActive]}>{level.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-        <Text style= {styles.subHeader}>Calculate the number of moles of NaCl in the solution:</Text>
-        <Text style={styles.formula}>Moles of NaCl = volume of solution (L) * molarity of solution (M)</Text>
-        <Text>Moles of NaCl = 4 L * 0.7 M</Text>
-        <Text>Moles of NaCl = 2.8 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of chlorine gas that can be produced from the NaCl solution:</Text>
-        <Text>Moles of Cl₂ = moles of NaCl / 2</Text>
-        <Text>Moles of Cl₂ = 2.8 mol / 2</Text>
-        <Text>Moles of Cl₂ = 1.4 mol</Text>
-        <Text style={styles.subHeader}>Calculate the mass of chlorine gas that can be produced:</Text>
-        <Text>Mass of Cl₂ = moles of Cl₂ * molar mass of Cl₂</Text>
-        <Text>Mass of Cl₂ = 1.4 mol * 70.90 g/mol</Text>
-        <Text>Mass of Cl₂ = 99.26 g</Text>
-        <Text style={styles.answr}>Therefore, 99.26 grams of chlorine gas can be obtained by the electrolysis of 4 L of 0.7 M NaCl solution.</Text>
-      </View>
+        {/* Questions */}
+        {displayedQuestions.map((item, index) => (
+          <View key={item.id} style={styles.questionCard}>
+            <TouchableOpacity style={styles.questionHeader} onPress={() => toggleExpand(index)} activeOpacity={0.8}>
+              <View style={styles.questionLeft}>
+                <View style={[styles.electrodeBadge, { backgroundColor: item.electrode === 'anode' ? '#EF444420' : '#3B82F620' }]}>
+                  <MaterialCommunityIcons
+                    name={item.electrode === 'anode' ? 'plus' : 'minus'}
+                    size={18}
+                    color={item.electrode === 'anode' ? '#EF4444' : '#3B82F6'}
+                  />
+                </View>
+                <View style={styles.questionInfo}>
+                  <View style={styles.typeBadge}>
+                    <Text style={styles.typeText}>{item.type}</Text>
+                    <View style={[styles.diffDot, { backgroundColor: getDifficultyColor(item.difficulty) }]} />
+                  </View>
+                  <Text style={styles.questionText} numberOfLines={expandedIndex === index ? 0 : 2}>{item.question}</Text>
+                </View>
+              </View>
+              <View style={styles.questionRight}>
+                <TouchableOpacity onPress={() => bookmarkQuestion(index)}>
+                  <MaterialCommunityIcons name={item.bookmarked ? 'star' : 'star-outline'} size={22} color={item.bookmarked ? '#FACC15' : '#666'} />
+                </TouchableOpacity>
+                <MaterialCommunityIcons name={expandedIndex === index ? 'chevron-up' : 'chevron-down'} size={24} color="#666" />
+              </View>
+            </TouchableOpacity>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What mass of copper can be obtained by passing 1.5 A of current through a CuSO4 solution for 4 hours? (Molar mass of Cu = 63.55 g/mol)</Text>
-      
-        <Text>To calculate the mass of copper that can be obtained by passing 1.5 A of current through a CuSO4 solution for 4 hours, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the quantity of electricity that passes through the solution:</Text>
-        <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-        <Text>Quantity of electricity = 1.5 A * 4 hours * 60 minutes/hour * 60 seconds/minute</Text>
-        <Text>Quantity of electricity = 21600 C</Text>
-        <Text style= {styles.subHeader}>Calculate the number of moles of electrons that are transferred:</Text>
-        <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-        <Text>Moles of electrons = 21600 C / 96500 C/mol</Text>
-        <Text>Moles of electrons = 0.224 mol</Text>
-        <Text style={styles.subHeader}>Calculate the mass of copper that can be deposited:</Text>
-        <Text style={styles.formula}>Mass of copper = moles of electrons * molar mass of copper</Text>
-        <Text>Mass of copper = 0.224 mol * 63.55 g/mol</Text>
-        <Text>Mass of copper = 14.20 g</Text>
-        <Text style={styles.answr}>Therefore, 14.20 grams of copper can be obtained by passing 1.5 A of current through a CuSO4 solution for 4 hours.</Text>
-      </View>
+            {expandedIndex === index && (
+              <View style={styles.solutionSection}>
+                <LinearGradient colors={['#10B981', '#059669']} style={styles.answerBox}>
+                  <Text style={styles.answerLabel}>Answer</Text>
+                  <Text style={styles.answerValue}>{item.solution.answer}</Text>
+                </LinearGradient>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What is the minimum current needed to produce 25 g of aluminum from Al2O3 in 10 hours? (Molar mass of Al = 26.98 g/mol)</Text>
-      
-        <Text>To calculate the minimum current needed to produce 25 g of aluminum from Al2O3 in 10 hours, we can use the following method</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of aluminum that need to be produced:</Text>
-        <Text style={styles.formula}>Moles of aluminum = mass of aluminum / molar mass of aluminum</Text>
-        <Text>Moles of aluminum = 25 g / 26.98 g/mol</Text>
-        <Text>Moles of aluminum = 0.927 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of electrons that need to be transferred to produce the aluminum:</Text>
-        <Text>Moles of electrons = moles of aluminum * 3</Text>
-        <Text>Moles of electrons = 0.927 mol * 3</Text>
-        <Text>Moles of electrons = 2.78 mol</Text>
-        <Text style={styles.subHeader}>Calculate the minimum current needed:</Text>
-        <Text style={styles.formula}>Current = moles of electrons * Faraday constant / time</Text>
-        <Text>Current = 2.78 mol * 96500 C/mol / 10 hours * 60 minutes/hour * 60 seconds/minute</Text>
-        <Text>Current = 1.57 A</Text>
-        <Text style={styles.answr}>Therefore, the minimum current needed to produce 25 g of aluminum from Al2O3 in 10 hours is 1.57 A.</Text>
-      </View>
+                <View style={styles.stepsContainer}>
+                  <Text style={styles.stepsTitle}>⚡ Solution Steps</Text>
+                  {item.solution.steps.map((step, i) => (
+                    <View key={i} style={styles.stepRow}>
+                      <LinearGradient colors={['#FACC15', '#F59E0B']} style={styles.stepNumber}>
+                        <Text style={styles.stepNumberText}>{i + 1}</Text>
+                      </LinearGradient>
+                      <Text style={styles.stepText}>{step}</Text>
+                    </View>
+                  ))}
+                </View>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>If 0.7 grams of silver is deposited by passing a current through AgNO3 solution, how long was the current applied? (Molar mass of Ag = 107.87 g/mol)</Text>
-      
-        <Text>To calculate the time required to deposit 0.7 grams of silver from AgNO3 solution using a current of 1.5 A, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of silver deposited:</Text>
-        <Text style={styles.formula}>Moles of silver = mass of silver / molar mass of silver</Text>
-        <Text>Moles of silver = 0.7 g / 107.87 g/mol</Text>
-        <Text>Moles of silver = 0.0065 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of electrons transferred:</Text>
-        <Text style={styles.formula}>Moles of electrons = moles of silver * 1</Text>
-        <Text>Moles of electrons = 0.0065 mol</Text>
-        <Text style={styles.subHeader}>Calculate the time required:</Text>
-        <Text style={styles.formula}>Time = moles of electrons * Faraday constant / current</Text>
-        <Text>Time = 0.0065 mol * 96500 C/mol / 1.5 A</Text>
-        <Text>Time = 417.47 seconds</Text>
-        <Text style={styles.answr}>Therefore, the current was applied for 417.47 seconds, or 6 minutes and 57 seconds.</Text>
-        <Text>Note: The Faraday constant is the amount of electric charge that must pass through an electrolytic cell to produce one mole of a substance. It is equal to 96500 coulombs per mole.</Text>
-      </View>
+                <View style={styles.conceptBox}>
+                  <MaterialCommunityIcons name="lightbulb-on" size={18} color="#F59E0B" />
+                  <Text style={styles.conceptText}>{item.solution.explanation}</Text>
+                </View>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>How many grams of chlorine gas can be obtained by the electrolysis of 3 L of 0.8 M NaCl solution? (Molar mass of Cl₂ = 70.90 g/mol)</Text>
-      
-        <Text>To calculate the amount of chlorine gas that can be obtained by the electrolysis of 3 L of 0.8 M NaCl solution, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of NaCl in the solution:</Text>
-        <Text style={styles.formula}>Moles of NaCl = volume of solution (L) * molarity of solution (M)</Text>
-        <Text>Moles of NaCl = 3 L * 0.8 M</Text>
-        <Text>Moles of NaCl = 2.4 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of chlorine gas that can be produced from the NaCl solution:</Text>
-        <Text>Moles of Cl₂ = moles of NaCl / 2</Text>
-        <Text>Moles of Cl₂ = 2.4 mol / 2</Text>
-        <Text>Moles of Cl₂ = 1.2 mol</Text>
-        <Text style={styles.subHeader}>Calculate the mass of chlorine gas that can be produced:</Text>
-        <Text style={styles.formula}>Mass of Cl₂ = moles of Cl₂ * molar mass of Cl₂</Text>
-        <Text>Mass of Cl₂ = 1.2 mol * 70.90 g/mol</Text>
-        <Text>Mass of Cl₂ = 85.08 g</Text>
-        <Text style={styles.answr}>Therefore, 85.08 grams of chlorine gas can be obtained by the electrolysis of 3 L of 0.8 M NaCl solution.</Text>
-      </View>
+                <TouchableOpacity style={styles.shareBtn} onPress={() => ShareManager.shareCalculation('Electrolysis', item.question, item.solution.answer)}>
+                  <MaterialCommunityIcons name="share-variant" size={18} color="#3B82F6" />
+                  <Text style={styles.shareBtnText}>Share Solution</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What mass of copper can be obtained by passing 2 A of current through a CuSO4 solution for 5 hours? (Molar mass of Cu = 63.55 g/mol)</Text>
-      
-        <Text>To calculate the mass of copper that can be obtained by passing 2 A of current through a CuSO4 solution for 5 hours, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the quantity of electricity that passes through the solution:</Text>
-        <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-        <Text>Quantity of electricity = 2 A * 5 hours * 60 minutes/hour * 60 seconds/minute</Text>
-        <Text>Quantity of electricity = 36000 C</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of electrons that are transferred:</Text>
-        <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-        <Text>Moles of electrons = 36000 C / 96500 C/mol</Text>
-        <Text>Moles of electrons = 0.374 mol</Text>
-        <Text style={styles.subHeader}>Calculate the mass of copper that can be deposited:</Text>
-        <Text style={styles.formula}>Mass of copper = moles of electrons * molar mass of copper</Text>
-        <Text>Mass of copper = 0.374 mol * 63.55 g/mol</Text>
-        <Text>Mass of copper = 23.78 g</Text>
-        <Text style={styles.answr}>Therefore, 23.78 grams of copper can be obtained by passing 2 A of current through a CuSO4 solution for 5 hours.</Text>
-      </View>
+            {item.attempted && (
+              <View style={styles.attemptedBadge}>
+                <MaterialCommunityIcons name="check" size={12} color="#10B981" />
+              </View>
+            )}
+          </View>
+        ))}
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What is the minimum current needed to produce 15 g of aluminum from Al2O3 in 8 hours? (Molar mass of Al = 26.98 g/mol)</Text>
-      
-        <Text>To calculate the minimum current needed to produce 15 g of aluminum from Al2O3 in 8 hours, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of aluminum that need to be produced:</Text>
-        <Text style={styles.formula}>Moles of aluminum = mass of aluminum / molar mass of aluminum</Text>
-        <Text>Moles of aluminum = 15 g / 26.98 g/mol</Text>
-        <Text>Moles of aluminum = 0.556 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of electrons that need to be transferred to produce the aluminum:</Text>
-        <Text style={styles.formula}>Moles of electrons = moles of aluminum * 3</Text>
-        <Text>Moles of electrons = 0.556 mol * 3</Text>
-        <Text>Moles of electrons = 1.668 mol</Text>
-        <Text style={styles.subHeader}>Calculate the minimum current needed:</Text>
-        <Text style={styles.formula}>Current = moles of electrons * Faraday constant / time</Text>
-        <Text>Current = 1.668 mol * 96500 C/mol / 8 hours * 60 minutes/hour * 60 seconds/minute</Text>
-        <Text>Current = 1.33 A</Text>
-        <Text style={styles.answr}>Therefore, the minimum current needed to produce 15 g of aluminum from Al2O3 in 8 hours is 1.33 A.</Text>
-      </View>
+        {questionCount < filteredQuestions.length && (
+          <TouchableOpacity style={styles.loadMoreBtn} onPress={() => setQuestionCount(prev => Math.min(prev + 10, filteredQuestions.length))}>
+            <Text style={styles.loadMoreText}>Load More</Text>
+            <MaterialCommunityIcons name="chevron-down" size={20} color="#FFF" />
+          </TouchableOpacity>
+        )}
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>If 0.5 grams of silver is deposited by passing a current through AgNO3 solution, how long was the current applied? (Molar mass of Ag = 107.87 g/mol)</Text>
-      
-        <Text>To calculate the time required to deposit 0.5 grams of silver from AgNO3 solution using a current of 1.5 A, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of silver deposited:</Text>
-        <Text style={styles.formula}>Moles of silver = mass of silver / molar mass of silver</Text>
-        <Text>Moles of silver = 0.5 g / 107.87 g/mol</Text>
-        <Text>Moles of silver = 0.0046 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of electrons transferred:</Text>
-        <Text style={styles.formula}>Moles of electrons = moles of silver * 1</Text>
-        <Text>Moles of electrons = 0.0046 mol</Text>
-        <Text style={styles.subHeader}>Calculate the time required:</Text>
-        <Text style={styles.formula}>Time = moles of electrons * Faraday constant / current</Text>
-        <Text>Time = 0.0046 mol * 96500 C/mol / 1.5 A</Text>
-        <Text>Time = 298.19 seconds</Text>
-        <Text style={styles.answr}>Therefore, the current was applied for 298.19 seconds, or 4 minutes and 58 seconds.</Text>
-      </View>
+        <TouchableOpacity style={styles.regenerateBtn} onPress={generateQuestions}>
+          <MaterialCommunityIcons name="refresh" size={18} color="#888" />
+          <Text style={styles.regenerateText}>Generate New Questions</Text>
+        </TouchableOpacity>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>How many grams of chlorine gas can be obtained by the electrolysis of 1.5 L of 2 M NaCl solution? (Molar mass of Cl₂ = 70.90 g/mol)</Text>
-      
-        <Text>To calculate the number of grams of chlorine gas that can be obtained by the electrolysis of 1.5 L of 2 M NaCl solution, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of NaCl in the solution:</Text>
-        <Text style={styles.formula}>Moles of NaCl = volume of solution (L) * molarity of solution (M)</Text>
-        <Text>Moles of NaCl = 1.5 L * 2 M = 3.0 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of chlorine gas that can be produced from the NaCl solution:</Text>
-        <Text>Moles of Cl₂ = moles of NaCl / 2</Text>
-        <Text>Moles of Cl₂ = 3.0 mol / 2 = 1.5 mol</Text>
-        <Text style={styles.subHeader}>Calculate the mass of chlorine gas that can be produced:</Text>
-        <Text style={styles.formula}>Mass of Cl₂ = moles of Cl₂ * molar mass of Cl₂</Text>
-        <Text>Mass of Cl₂ = 1.5 mol * 70.90 g/mol = 106.35 g</Text>
-        <Text style={styles.answr}>Therefore, 106.35 grams of chlorine gas can be obtained by the electrolysis of 1.5 L of 2 M NaCl solution.</Text>
-      </View>
+        <View style={{ height: 100 }} />
+      </Animated.ScrollView>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What mass of copper can be obtained by passing 3 A of current through a CuSO4 solution for 2 hours? (Molar mass of Cu = 63.55 g/mol)</Text>
-      
-        <Text>To calculate the mass of copper that can be obtained by passing 3 A of current through a CuSO4 solution for 2 hours, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the quantity of electricity that passes through the solution:</Text>
-        <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-        <Text>Quantity of electricity = 3 A * 2 hours * 60 minutes/hour * 60 seconds/minute</Text>
-        <Text>Quantity of electricity = 21600 C</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of electrons that are transferred:</Text>
-        <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-        <Text>Moles of electrons = 21600 C / 96500 C/mol</Text>
-        <Text>Moles of electrons = 0.224 mol</Text>
-        <Text style={styles.subHeader}>Calculate the mass of copper that can be deposited:</Text>
-        <Text style={styles.formula}>Mass of copper = moles of electrons * molar mass of copper</Text>
-        <Text>Mass of copper = 0.224 mol * 63.55 g/mol</Text>
-        <Text>Mass of copper = 14.22 g</Text>
-        <Text style={styles.answr}>Therefore, 14.22 grams of copper can be obtained by passing 3 A of current through a CuSO4 solution for 2 hours.</Text>
-      </View>
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What is the minimum current needed to produce 20 g of aluminum from Al2O3 in 4 hours? (Molar mass of Al = 26.98 g/mol)</Text>
-      
-        <Text>To calculate the minimum current needed to produce 20 g of aluminum from Al2O3 in 4 hours, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of aluminum that need to be produced:</Text>
-        <Text style={styles.formula}>Moles of aluminum = mass of aluminum / molar mass of aluminum</Text>
-        <Text>Moles of aluminum = 20 g / 26.98 g/mol</Text>
-        <Text>Moles of aluminum = 0.741 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of electrons that need to be transferred to produce the aluminum:</Text>
-        <Text style={styles.formula}>Moles of electrons = moles of aluminum * 3</Text>
-        <Text>Moles of electrons = 0.741 mol * 3</Text>
-        <Text>Moles of electrons = 2.22 mol</Text>
-        <Text style={styles.subHeader}>Calculate the minimum current needed:</Text>
-        <Text style={styles.formula}>Current = moles of electrons * Faraday constant / time</Text>
-        <Text>Current = 2.22 mol * 96500 C/mol / 4 hours * 60 minutes/hour * 60 seconds/minute</Text>
-        <Text>Current = 15.0 A</Text>
-        <Text style={styles.answr}>Therefore, the minimum current needed to produce 20 g of aluminum from Al2O3 in 4 hours is 15.0 A.</Text>
-      </View>
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>If 0.6 grams of silver is deposited by passing a current through AgNO3 solution, how long was the current applied? (Molar mass of Ag = 107.87 g/mol)</Text>
-
-        <Text>To calculate the time required to deposit 0.6 grams of silver from AgNO3 solution using a current of 1.5 A, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of silver deposited:</Text>
-        <Text style={styles.formula}>Moles of silver = mass of silver / molar mass of silver</Text>
-        <Text>Moles of silver = 0.6 g / 107.87 g/mol</Text>
-        <Text>Moles of silver = 0.0056 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of electrons transferred:</Text>
-        <Text>Moles of electrons = moles of silver * 1</Text>
-        <Text>Moles of electrons = 0.0056 mol</Text>
-        <Text style={styles.subHeader}>Calculate the time required:</Text>
-        <Text style={styles.formula}>Time = moles of electrons * Faraday constant / current</Text>
-        <Text>Time = 0.0056 mol * 96500 C/mol / 1.5 A</Text>
-        <Text>Time = 353.83 seconds</Text>
-        <Text style={styles.answr}>Therefore, the current was applied for 353.83 seconds, or 5 minutes and 54 seconds.</Text>
-      </View>
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>How many grams of chlorine gas can be obtained by the electrolysis of 2 L of 0.5 M NaCl solution? (Molar mass of Cl₂ = 70.90 g/mol)</Text>
-
-        <Text>To calculate the number of grams of chlorine gas that can be obtained by the electrolysis of 2 L of 0.5 M NaCl solution, we can use the following steps:</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of NaCl in the solution:</Text>
-        <Text style={styles.formula}>Moles of NaCl = volume of solution (L) * molarity of solution (M)</Text>
-        <Text>Moles of NaCl = 2 L * 0.5 M = 1.0 mol</Text>
-        <Text style={styles.subHeader}>Calculate the number of moles of chlorine gas that can be produced from the NaCl solution:</Text>
-        <Text style={styles.formula}>Moles of Cl₂ = moles of NaCl / 2</Text>
-        <Text>Moles of Cl₂ = 1.0 mol / 2 = 0.50 mol</Text>
-        <Text style={styles.subHeader}>Calculate the mass of chlorine gas that can be produced:</Text>
-        <Text style={styles.formula}>Mass of Cl₂ = moles of Cl₂ * molar mass of Cl₂</Text>
-        <Text>Mass of Cl₂ = 0.50 mol * 70.90 g/mol = 35.45 g</Text>
-        <Text>Therefore, 35.45 grams of chlorine gas can be obtained by the electrolysis of 2 L of 0.5 M NaCl solution.</Text>
-      </View>
-
-      <View style={styles.problemContainer}>
-  <Text style={styles.question}>Calculate the mass of copper sulfate (CuSO4) that can be obtained by passing 4 A of current through a CuSO4 solution for 3 hours. (Molar mass of CuSO4 = 159.61 g/mol)</Text>
-  
-  <Text>To calculate the mass of copper sulfate (CuSO4) obtained by passing 4 A of current through a CuSO4 solution for 3 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity that passes through the solution:</Text>
-  <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-  <Text>Quantity of electricity = 4 A * 3 hours * 60 minutes/hour * 60 seconds/minute</Text>
-  <Text>Quantity of electricity = 43200 C</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-  <Text>Moles of electrons = 43200 C / 96500 C/mol</Text>
-  <Text>Moles of electrons = 0.447 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of CuSO4 produced:</Text>
-  <Text style={styles.formula}>Moles of CuSO4 = moles of electrons</Text>
-  <Text>Moles of CuSO4 = 0.447 mol</Text>
-  <Text style={styles.subHeader}>Calculate the mass of CuSO4 produced:</Text>
-  <Text style={styles.formula}>Mass of CuSO4 = moles of CuSO4 * molar mass of CuSO4</Text>
-  <Text>Mass of CuSO4 = 0.447 mol * 159.61 g/mol</Text>
-  <Text>Mass of CuSO4 = 71.55 g</Text>
-  <Text style={styles.answr}>Therefore, 71.55 grams of copper sulfate can be obtained by passing 4 A of current through a CuSO4 solution for 3 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>Determine the minimum current required to produce 50 g of hydrogen gas through the electrolysis of water in 2 hours. (Molar mass of H2 = 2.02 g/mol)</Text>
-  
-  <Text>To determine the minimum current required to produce 50 g of hydrogen gas through the electrolysis of water in 2 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of hydrogen gas to be produced:</Text>
-  <Text style={styles.formula}>Moles of H2 = mass of H2 / molar mass of H2</Text>
-  <Text>Moles of H2 = 50 g / 2.02 g/mol</Text>
-  <Text>Moles of H2 = 24.75 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons needed for the electrolysis:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of H2</Text>
-  <Text>Moles of electrons = 24.75 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity required:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 24.75 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 2,373,375 C</Text>
-  <Text style={styles.subHeader}>Calculate the minimum current required:</Text>
-  <Text style={styles.formula}>Current = quantity of electricity / time</Text>
-  <Text>Current = 2,373,375 C / (2 hours * 60 minutes/hour * 60 seconds/minute)</Text>
-  <Text>Current = 659.27 A</Text>
-  <Text style={styles.answr}>Therefore, the minimum current required is 659.27 A to produce 50 g of hydrogen gas through the electrolysis of water in 2 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>If 1.2 grams of aluminum is deposited by passing a current through AlCl3 solution, how long was the current applied? (Molar mass of Al = 26.98 g/mol)</Text>
-
-  <Text>To calculate the time required to deposit 1.2 grams of aluminum from AlCl3 solution using a current of 2.5 A, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of aluminum deposited:</Text>
-  <Text style={styles.formula}>Moles of Al = mass of Al / molar mass of Al</Text>
-  <Text>Moles of Al = 1.2 g / 26.98 g/mol</Text>
-  <Text>Moles of Al = 0.0444 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of Al</Text>
-  <Text>Moles of electrons = 0.0444 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 0.0444 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 4282.6 C</Text>
-  <Text style={styles.subHeader}>Calculate the time applied:</Text>
-  <Text style={styles.formula}>Time = quantity of electricity / current</Text>
-  <Text>Time = 4282.6 C / 2.5 A</Text>
-  <Text>Time = 1713.04 seconds</Text>
-  <Text style={styles.answr}>Therefore, the current was applied for 1713.04 seconds, or 28 minutes and 33 seconds.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>How many grams of zinc can be obtained by passing a current through a ZnSO4 solution for 5 hours, using a current of 3 A? (Molar mass of Zn = 65.38 g/mol)</Text>
-  
-  <Text>To calculate the grams of zinc obtained by passing a current through a ZnSO4 solution for 5 hours, using a current of 3 A, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity:</Text>
-  <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-  <Text>Quantity of electricity = 3 A * 5 hours * 60 minutes/hour * 60 seconds/minute</Text>
-  <Text>Quantity of electricity = 54,000 C</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-  <Text>Moles of electrons = 54,000 C / 96500 C/mol</Text>
-  <Text>Moles of electrons = 0.559 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of zinc produced:</Text>
-  <Text style={styles.formula}>Moles of Zn = moles of electrons</Text>
-  <Text>Moles of Zn = 0.559 mol</Text>
-  <Text style={styles.subHeader}>Calculate the mass of zinc produced:</Text>
-  <Text style={styles.formula}>Mass of Zn = moles of Zn * molar mass of Zn</Text>
-  <Text>Mass of Zn = 0.559 mol * 65.38 g/mol</Text>
-  <Text>Mass of Zn = 36.55 g</Text>
-  <Text style={styles.answr}>Therefore, 36.55 grams of zinc can be obtained by passing a current through a ZnSO4 solution for 5 hours, using a current of 3 A.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>What is the minimum current needed to produce 30 g of silver from AgNO3 in 3 hours? (Molar mass of Ag = 107.87 g/mol)</Text>
-
-  <Text>To determine the minimum current needed to produce 30 g of silver from AgNO3 in 3 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of silver to be produced:</Text>
-  <Text style={styles.formula}>Moles of Ag = mass of Ag / molar mass of Ag</Text>
-  <Text>Moles of Ag = 30 g / 107.87 g/mol</Text>
-  <Text>Moles of Ag = 0.278 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons needed for the electrolysis:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of Ag</Text>
-  <Text>Moles of electrons = 0.278 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity required:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 0.278 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 26,773.5 C</Text>
-  <Text style={styles.subHeader}>Calculate the minimum current required:</Text>
-  <Text style={styles.formula}>Current = quantity of electricity / time</Text>
-  <Text>Current = 26,773.5 C / (3 hours * 60 minutes/hour * 60 seconds/minute)</Text>
-  <Text>Current = 2.49 A</Text>
-  <Text style={styles.answr}>Therefore, the minimum current needed is 2.49 A to produce 30 g of silver from AgNO3 in 3 hours.</Text>
-</View>
-
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>Calculate the mass of aluminum oxide (Al2O3) produced by passing 6 A of current through an Al2O3 solution for 4 hours. (Molar mass of Al2O3 = 101.96 g/mol)</Text>
-  
-  <Text>To calculate the mass of aluminum oxide (Al2O3) produced by passing 6 A of current through an Al2O3 solution for 4 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity that passes through the solution:</Text>
-  <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-  <Text>Quantity of electricity = 6 A * 4 hours * 60 minutes/hour * 60 seconds/minute</Text>
-  <Text>Quantity of electricity = 86,400 C</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-  <Text>Moles of electrons = 86,400 C / 96500 C/mol</Text>
-  <Text>Moles of electrons = 0.896 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of Al2O3 produced:</Text>
-  <Text style={styles.formula}>Moles of Al2O3 = moles of electrons / 6</Text>
-  <Text>Moles of Al2O3 = 0.896 mol / 6</Text>
-  <Text>Moles of Al2O3 = 0.149 mol</Text>
-  <Text style={styles.subHeader}>Calculate the mass of Al2O3 produced:</Text>
-  <Text style={styles.formula}>Mass of Al2O3 = moles of Al2O3 * molar mass of Al2O3</Text>
-  <Text>Mass of Al2O3 = 0.149 mol * 101.96 g/mol</Text>
-  <Text>Mass of Al2O3 = 15.18 g</Text>
-  <Text style={styles.answr}>Therefore, 15.18 grams of aluminum oxide can be produced by passing 6 A of current through an Al2O3 solution for 4 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>Determine the volume of hydrogen gas produced by the electrolysis of water using a current of 2.5 A for 3 hours. (Molar volume of gases at STP = 22.4 L/mol)</Text>
-  
-  <Text>To determine the volume of hydrogen gas produced by the electrolysis of water using a current of 2.5 A for 3 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity:</Text>
-  <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-  <Text>Quantity of electricity = 2.5 A * 3 hours * 60 minutes/hour * 60 seconds/minute</Text>
-  <Text>Quantity of electricity = 27,000 C</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-  <Text>Moles of electrons = 27,000 C / 96500 C/mol</Text>
-  <Text>Moles of electrons = 0.280 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of H2 gas produced:</Text>
-  <Text style={styles.formula}>Moles of H2 = moles of electrons / 2</Text>
-  <Text>Moles of H2 = 0.280 mol / 2</Text>
-  <Text>Moles of H2 = 0.140 mol</Text>
-  <Text style={styles.subHeader}>Calculate the volume of H2 gas produced at STP:</Text>
-  <Text style={styles.formula}>Volume of H2 = moles of H2 * molar volume of gases at STP</Text>
-  <Text>Volume of H2 = 0.140 mol * 22.4 L/mol</Text>
-  <Text>Volume of H2 = 3.14 L</Text>
-  <Text style={styles.answr}>Therefore, the volume of hydrogen gas produced is 3.14 liters by the electrolysis of water using a current of 2.5 A for 3 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>If 2.0 grams of copper is deposited by passing a current through a Cu(NO3)2 solution, how long was the current applied? (Molar mass of Cu = 63.55 g/mol)</Text>
-  
-  <Text>To calculate the time required to deposit 2.0 grams of copper from a Cu(NO3)2 solution using a current of 1.8 A, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of copper deposited:</Text>
-  <Text style={styles.formula}>Moles of Cu = mass of Cu / molar mass of Cu</Text>
-  <Text>Moles of Cu = 2.0 g / 63.55 g/mol</Text>
-  <Text>Moles of Cu = 0.0315 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of Cu</Text>
-  <Text>Moles of electrons = 0.0315 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 0.0315 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 3039.75 C</Text>
-  <Text style={styles.subHeader}>Calculate the time applied:</Text>
-  <Text style={styles.formula}>Time = quantity of electricity / current</Text>
-  <Text>Time = 3039.75 C / 1.8 A</Text>
-  <Text>Time = 1694.31 seconds</Text>
-  <Text style={styles.answr}>Therefore, the current was applied for 1694.31 seconds, or 28 minutes and 14 seconds.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>How many grams of oxygen gas can be obtained by the electrolysis of 1.5 L of 3 M H2O2 solution? (Molar mass of O2 = 32.00 g/mol)</Text>
-  
-  <Text>To calculate the grams of oxygen gas obtained by the electrolysis of 1.5 L of 3 M H2O2 solution, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of H2O2 in the solution:</Text>
-  <Text style={styles.formula}>Moles of H2O2 = volume of solution (L) * molarity of solution (M)</Text>
-  <Text>Moles of H2O2 = 1.5 L * 3 M = 4.5 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of O2 gas produced:</Text>
-  <Text style={styles.formula}>Moles of O2 = moles of H2O2</Text>
-  <Text>Moles of O2 = 4.5 mol</Text>
-  <Text style={styles.subHeader}>Calculate the mass of O2 gas produced:</Text>
-  <Text style={styles.formula}>Mass of O2 = moles of O2 * molar mass of O2</Text>
-  <Text>Mass of O2 = 4.5 mol * 32.00 g/mol</Text>
-  <Text>Mass of O2 = 144.00 g</Text>
-  <Text style={styles.answr}>Therefore, 144.00 grams of oxygen gas can be obtained by the electrolysis of 1.5 L of 3 M H2O2 solution.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>What is the minimum current needed to produce 25 g of zinc from Zn(NO3)2 in 2 hours? (Molar mass of Zn = 65.38 g/mol)</Text>
-  
-  <Text>To determine the minimum current needed to produce 25 g of zinc from Zn(NO3)2 in 2 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of zinc to be produced:</Text>
-  <Text style={styles.formula}>Moles of Zn = mass of Zn / molar mass of Zn</Text>
-  <Text>Moles of Zn = 25 g / 65.38 g/mol</Text>
-  <Text>Moles of Zn = 0.383 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons needed for the electrolysis:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of Zn</Text>
-  <Text>Moles of electrons = 0.383 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity required:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 0.383 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 36,959.50 C</Text>
-  <Text style={styles.subHeader}>Calculate the minimum current required:</Text>
-  <Text style={styles.formula}>Current = quantity of electricity / time</Text>
-  <Text>Current = 36,959.50 C / (2 hours * 60 minutes/hour * 60 seconds/minute)</Text>
-  <Text>Current = 10.27 A</Text>
-  <Text style={styles.answr}>Therefore, the minimum current needed is 10.27 A to produce 25 g of zinc from Zn(NO3)2 in 2 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>If 1.0 grams of aluminum is deposited by passing a current through AlCl3 solution, how long was the current applied? (Molar mass of Al = 26.98 g/mol)</Text>
-  
-  <Text>To calculate the time required to deposit 1.0 gram of aluminum from AlCl3 solution using a current of 2.0 A, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of aluminum deposited:</Text>
-  <Text style={styles.formula}>Moles of Al = mass of Al / molar mass of Al</Text>
-  <Text>Moles of Al = 1.0 g / 26.98 g/mol</Text>
-  <Text>Moles of Al = 0.037 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of Al</Text>
-  <Text>Moles of electrons = 0.037 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 0.037 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 3,564.5 C</Text>
-  <Text style={styles.subHeader}>Calculate the time applied:</Text>
-  <Text style={styles.formula}>Time = quantity of electricity / current</Text>
-  <Text>Time = 3,564.5 C / 2.0 A</Text>
-  <Text>Time = 1,782.25 seconds</Text>
-  <Text style={styles.answr}>Therefore, the current was applied for 1,782.25 seconds, or 29 minutes and 42 seconds.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>Determine the mass of silver chloride (AgCl) produced by passing 4 A of current through an AgCl solution for 5 hours. (Molar mass of AgCl = 143.32 g/mol)</Text>
-  
-  <Text>To calculate the mass of silver chloride (AgCl) produced by passing 4 A of current through an AgCl solution for 5 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity that passes through the solution:</Text>
-  <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-  <Text>Quantity of electricity = 4 A * 5 hours * 60 minutes/hour * 60 seconds/minute</Text>
-  <Text>Quantity of electricity = 72,000 C</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-  <Text>Moles of electrons = 72,000 C / 96500 C/mol</Text>
-  <Text>Moles of electrons = 0.747 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of AgCl produced:</Text>
-  <Text style={styles.formula}>Moles of AgCl = moles of electrons / 1</Text>
-  <Text>Moles of AgCl = 0.747 mol</Text>
-  <Text style={styles.subHeader}>Calculate the mass of AgCl produced:</Text>
-  <Text style={styles.formula}>Mass of AgCl = moles of AgCl * molar mass of AgCl</Text>
-  <Text>Mass of AgCl = 0.747 mol * 143.32 g/mol</Text>
-  <Text>Mass of AgCl = 107.22 g</Text>
-  <Text style={styles.answr}>Therefore, 107.22 grams of silver chloride can be produced by passing 4 A of current through an AgCl solution for 5 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>How many grams of zinc oxide (ZnO) can be produced by passing 3.5 A of current through a Zn(NO3)2 solution for 6 hours? (Molar mass of ZnO = 81.38 g/mol)</Text>
-  
-  <Text>To calculate the grams of zinc oxide (ZnO) produced by passing 3.5 A of current through a Zn(NO3)2 solution for 6 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity that passes through the solution:</Text>
-  <Text style={styles.formula}>Quantity of electricity = current (A) * time (s)</Text>
-  <Text>Quantity of electricity = 3.5 A * 6 hours * 60 minutes/hour * 60 seconds/minute</Text>
-  <Text>Quantity of electricity = 75,600 C</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = quantity of electricity / Faraday constant</Text>
-  <Text>Moles of electrons = 75,600 C / 96500 C/mol</Text>
-  <Text>Moles of electrons = 0.783 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of ZnO produced:</Text>
-  <Text style={styles.formula}>Moles of ZnO = moles of electrons / 2</Text>
-  <Text>Moles of ZnO = 0.783 mol / 2</Text>
-  <Text>Moles of ZnO = 0.392 mol</Text>
-  <Text style={styles.subHeader}>Calculate the mass of ZnO produced:</Text>
-  <Text style={styles.formula}>Mass of ZnO = moles of ZnO * molar mass of ZnO</Text>
-  <Text>Mass of ZnO = 0.392 mol * 81.38 g/mol</Text>
-  <Text>Mass of ZnO = 31.85 g</Text>
-  <Text style={styles.answr}>Therefore, 31.85 grams of zinc oxide can be produced by passing 3.5 A of current through a Zn(NO3)2 solution for 6 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>Calculate the minimum current required to produce 50 g of copper from CuSO4 solution in 3 hours. (Molar mass of Cu = 63.55 g/mol)</Text>
-  
-  <Text>To determine the minimum current required to produce 50 g of copper from CuSO4 solution in 3 hours, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of copper to be produced:</Text>
-  <Text style={styles.formula}>Moles of Cu = mass of Cu / molar mass of Cu</Text>
-  <Text>Moles of Cu = 50 g / 63.55 g/mol</Text>
-  <Text>Moles of Cu = 0.787 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons needed for the electrolysis:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of Cu</Text>
-  <Text>Moles of electrons = 0.787 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity required:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 0.787 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 75,999.50 C</Text>
-  <Text style={styles.subHeader}>Calculate the minimum current required:</Text>
-  <Text style={styles.formula}>Current = quantity of electricity / time</Text>
-  <Text>Current = 75,999.50 C / (3 hours * 60 minutes/hour * 60 seconds/minute)</Text>
-  <Text>Current = 7.47 A</Text>
-  <Text style={styles.answr}>Therefore, the minimum current needed is 7.47 A to produce 50 g of copper from CuSO4 solution in 3 hours.</Text>
-</View>
-
-<View style={styles.problemContainer}>
-  <Text style={styles.question}>If 2.5 grams of silver is deposited by passing a current through AgNO3 solution, how long was the current applied? (Molar mass of Ag = 107.87 g/mol)</Text>
-
-  <Text>To calculate the time required to deposit 2.5 grams of silver from AgNO3 solution using a current of 1.5 A, follow these steps:</Text>
-  <Text style={styles.subHeader}>Calculate the moles of silver deposited:</Text>
-  <Text style={styles.formula}>Moles of silver = mass of silver / molar mass of silver</Text>
-  <Text>Moles of silver = 2.5 g / 107.87 g/mol</Text>
-  <Text>Moles of silver = 0.023 mol</Text>
-  <Text style={styles.subHeader}>Calculate the moles of electrons transferred:</Text>
-  <Text style={styles.formula}>Moles of electrons = moles of silver * 1</Text>
-  <Text>Moles of electrons = 0.023 mol</Text>
-  <Text style={styles.subHeader}>Calculate the quantity of electricity:</Text>
-  <Text style={styles.formula}>Quantity of electricity = moles of electrons * Faraday constant</Text>
-  <Text>Quantity of electricity = 0.023 mol * 96500 C/mol</Text>
-  <Text>Quantity of electricity = 2,214.5 C</Text>
-  <Text style={styles.subHeader}>Calculate the time applied:</Text>
-  <Text style={styles.formula}>Time = quantity of electricity / current</Text>
-  <Text>Time = 2,214.5 C / 1.5 A</Text>
-  <Text>Time = 1,476.33 seconds</Text>
-  <Text style={styles.answr}>Therefore, the current was applied for 1,476.33 seconds, or 24 minutes and 36 seconds.</Text>
-</View>
-
-
-
-      <Text style={styles.header}>Try It</Text>
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>Calculate the amount of hydrogen gas produced when 1.5 moles of water undergo electrolysis.</Text>
-        <Text>1.5 moles of water produce 1.5 moles of hydrogen gas.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>A current of 2.5 A is passed through a solution of copper sulfate for 2 hours. Calculate the mass of copper deposited. (Molar mass of Cu = 63.55 g/mol)</Text>
-        <Text>Approximately 11.8 grams of copper are deposited.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What mass of aluminum can be extracted from Al2O3 using 1200 C of charge in molten aluminum oxide? (Molar mass of Al = 26.98 g/mol)</Text>
-        <Text>Approximately 0.168 grams of aluminum can be extracted.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>How many grams of chlorine gas will be produced by the electrolysis of 500 mL of 1 M NaCl solution? (Molar mass of Cl₂ = 70.90 g/mol)</Text>
-        <Text>Approximately 17.725 grams of chlorine gas will be produced.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>If 0.8 grams of silver is deposited by passing a current through AgNO3 solution, how long was the current applied? (Molar mass of Ag = 107.87 g/mol)</Text>
-        <Text>The current was applied for approximately 11.89 minutes.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What is the minimum current needed to produce 10 g of aluminum from Al2O3 in 6 hours? (Molar mass of Al = 26.98 g/mol)</Text>
-        <Text>A current of approximately 6.57 x 10^-5 A is needed.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What mass of copper can be obtained by passing 2.5 A of current through a CuSO4 solution for 3 hours? (Molar mass of Cu = 63.55 g/mol)</Text>
-        <Text>Approximately 17.8 grams of copper can be obtained.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>How many grams of chlorine gas can be obtained by the electrolysis of 2 L of 0.5 M NaCl solution? (Molar mass of Cl₂ = 70.90 g/mol)</Text>
-        <Text>Approximately 35.45 grams of chlorine gas can be obtained.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>If 0.6 grams of silver is deposited by passing a current through AgNO3 solution, how long was the current applied? (Molar mass of Ag = 107.87 g/mol)</Text>
-        <Text>The current was applied for approximately 9.02 minutes.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What is the minimum current needed to produce 20 g of aluminum from Al2O3 in 4 hours? (Molar mass of Al = 26.98 g/mol)</Text>
-        <Text>A current of approximately 2.73 x 10^-4 A is needed.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What mass of copper can be obtained by passing 3 A of current through a CuSO4 solution for 2 hours? (Molar mass of Cu = 63.55 g/mol)</Text>
-        <Text>Approximately 14.2 grams of copper can be obtained.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>How many grams of chlorine gas can be obtained by the electrolysis of 1.5 L of 2 M NaCl solution? (Molar mass of Cl₂ = 70.90 g/mol)</Text>
-        <Text>Approximately 106.35 grams of chlorine gas can be obtained.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>If 0.5 grams of silver is deposited by passing a current through AgNO3 solution, how long was the current applied? (Molar mass of Ag = 107.87 g/mol)</Text>
-        <Text>The current was applied for approximately 7.39 minutes.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What is the minimum current needed to produce 15 g of aluminum from Al2O3 in 8 hours? (Molar mass of Al = 26.98 g/mol)</Text>
-        <Text>A current of approximately 8.14 x 10^-5 A is needed.</Text>
-      </View >
-
-      <View style={styles.problemContainer}>
-        <Text style={styles.question}>What mass of copper can be obtained by passing 1.5 A of current through a CuSO4 solution for 4 hours? (Molar mass of Cu = 63.55 g/mol)</Text>
-        <Text>Approximately 14.2 grams of copper can be obtained.</Text>
-      </View >
-
-
-      
-
-    </ScrollView>
-    <View style={styles.adContainer}>
-        <BannerAd
-          unitId={adUnitId}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          requestOptions={{
-            requestNonPersonalizedAdsOnly: false,
-          }}
-        />
-      </View>
-  </>
+      {AdManager.shouldShowBanner('ElectrolysisCalculations') && (
+        <View style={styles.adContainer}>
+          <BannerAd unitId={AdManager.getBannerUnitId('result')} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    marginBottom: 50,
-  },
-  adContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    alignItems: 'center',
-  },
-  header: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#4E7ECE', // Attractive Blue Color
-  },
-  problemContainer: {
-    marginBottom: 24,
-    backgroundColor: '#F2F2F2', // Light Gray Background
-    padding: 10,
-    borderRadius: 10,
-  },
-  subHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#4E7ECE', // Attractive Blue Color
-  },
-  formula: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#32CD32', // Lime Green
-  },
-  problemContainer: {
-    backgroundColor: '#FFFFFF', // White Background
-    borderRadius: 10,
-    padding: 16,
-    elevation: 3, // Add a slight shadow for depth
-    marginBottom: 20,
-  },
-  answr: {
-    fontSize: 22,
-    marginBottom: 8,
-    color: '#FF6317', // Tomato Red
-    fontStyle: 'italic',
-  },
-  question: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-});
-  
+  container: { flex: 1, backgroundColor: THEME.background },
 
-export default ElectrolysisCalculations;
+  header: { margin: 16, borderRadius: 20, padding: 20, paddingTop: Platform.OS === 'ios' ? 50 : 20 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  headerText: { marginLeft: 16 },
+  headerTitle: { color: '#FFF', fontSize: 28, fontWeight: '800' },
+  headerSubtitle: { color: '#FFFFFF80', fontSize: 14, marginTop: 4 },
+
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  statPill: { backgroundColor: '#FFFFFF20', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, alignItems: 'center' },
+  statValue: { color: '#FFF', fontSize: 20, fontWeight: '800' },
+  statLabel: { color: '#FFFFFF80', fontSize: 10, marginTop: 2 },
+
+  formulaBar: { marginHorizontal: 16, marginBottom: 16 },
+  formulaItem: { backgroundColor: '#FACC1520', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#FACC1540' },
+  formulaLabel: { color: '#FACC15', fontSize: 11, fontWeight: '600', marginBottom: 4 },
+  formulaText: { color: '#FFF', fontSize: 16, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+
+  filterScroll: { paddingHorizontal: 16, paddingBottom: 16, gap: 10 },
+  filterChip: { backgroundColor: '#FFFFFF08', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, marginRight: 10 },
+  filterChipActive: { backgroundColor: '#FACC15' },
+  filterText: { color: '#888', fontSize: 13, fontWeight: '600' },
+  filterTextActive: { color: '#000' },
+
+  questionCard: { backgroundColor: THEME.card, marginHorizontal: 16, marginBottom: 14, borderRadius: 16, borderWidth: 1, borderColor: THEME.cardBorder, overflow: 'hidden' },
+  questionHeader: { flexDirection: 'row', padding: 16 },
+  questionLeft: { flex: 1, flexDirection: 'row', alignItems: 'flex-start' },
+  electrodeBadge: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  questionInfo: { flex: 1 },
+  typeBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  typeText: { color: '#FACC15', fontSize: 11, fontWeight: '600', textTransform: 'uppercase' },
+  diffDot: { width: 8, height: 8, borderRadius: 4 },
+  questionText: { color: '#FFF', fontSize: 14, lineHeight: 20 },
+  questionRight: { alignItems: 'center', gap: 10 },
+
+  solutionSection: { padding: 16, backgroundColor: '#0A0C10', borderTopWidth: 1, borderTopColor: THEME.cardBorder },
+  answerBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 12, marginBottom: 16 },
+  answerLabel: { color: '#FFFFFF80', fontSize: 12, fontWeight: '600' },
+  answerValue: { color: '#FFF', fontSize: 20, fontWeight: '800' },
+
+  stepsContainer: { backgroundColor: '#FFFFFF08', borderRadius: 12, padding: 16, marginBottom: 16 },
+  stepsTitle: { color: '#FACC15', fontSize: 14, fontWeight: '700', marginBottom: 12 },
+  stepRow: { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-start' },
+  stepNumber: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  stepNumberText: { color: '#000', fontSize: 12, fontWeight: '700' },
+  stepText: { flex: 1, color: '#CCC', fontSize: 14, lineHeight: 20 },
+
+  conceptBox: { flexDirection: 'row', backgroundColor: '#F59E0B15', padding: 14, borderRadius: 10, marginBottom: 16, gap: 10, alignItems: 'flex-start' },
+  conceptText: { flex: 1, color: '#F59E0B', fontSize: 13, lineHeight: 18 },
+
+  shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3B82F620', padding: 12, borderRadius: 10, gap: 8 },
+  shareBtnText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
+
+  attemptedBadge: { position: 'absolute', top: 8, right: 8, width: 20, height: 20, borderRadius: 10, backgroundColor: '#10B98130', justifyContent: 'center', alignItems: 'center' },
+
+  loadMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FACC15', marginHorizontal: 16, padding: 16, borderRadius: 12, gap: 8 },
+  loadMoreText: { color: '#000', fontSize: 15, fontWeight: '700' },
+
+  regenerateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginTop: 12, padding: 14, gap: 8 },
+  regenerateText: { color: '#888', fontSize: 14, fontWeight: '600' },
+
+  adContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: THEME.background },
+});
+
+export default ElectrolysisScreen;

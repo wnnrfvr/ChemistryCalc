@@ -1,541 +1,345 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+// StoichiometryScreen.js - Premium Balance/Scale Blue Theme
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  Animated, Dimensions, Platform
+} from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BannerAd, BannerAdSize } from './components/AdMobWrapper';
+import { generateQuestion, difficultyLevels } from './stoichiometryQuestionsData';
+import { ShareManager } from './ShareManager';
+import { AdManager } from './AdManager';
+import { GamificationManager } from './GamificationManager';
 
-const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
+const { width } = Dimensions.get('window');
+
+// Balance Blue Theme
+const THEME = {
+  background: '#070B14',
+  card: '#0E1525',
+  cardBorder: '#1A2540',
+  accent: '#3B82F6',
+  accentLight: '#60A5FA',
+  text: '#FFFFFF',
+};
+
 const StoichiometryScreen = () => {
+  const [questions, setQuestions] = useState([]);
+  const [expandedIndex, setExpandedIndex] = useState(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [questionCount, setQuestionCount] = useState(10);
+  const [solutionsViewed, setSolutionsViewed] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const balanceAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    generateQuestions();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+
+    // Balance scale animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(balanceAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
+        Animated.timing(balanceAnim, { toValue: 0, duration: 2000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const generateQuestions = () => {
+    const questionTypes = ['molesToMoles', 'gramsToMoles', 'gramsToGrams', 'molesToGrams', 'molecules'];
+    const newQuestions = [];
+    for (let i = 0; i < 50; i++) {
+      const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+      newQuestions.push({
+        ...generateQuestion(type),
+        id: i,
+        bookmarked: false,
+        attempted: false,
+        reactionType: ['synthesis', 'decomposition', 'combustion'][Math.floor(Math.random() * 3)]
+      });
+    }
+    setQuestions(newQuestions);
+  };
+
+  const toggleExpand = (index) => {
+    if (expandedIndex === index) {
+      setExpandedIndex(null);
+    } else {
+      setExpandedIndex(index);
+      setSolutionsViewed(prev => {
+        const newCount = prev + 1;
+        if (AdManager.onCalculationComplete()) {
+          AdManager.showInterstitial();
+        }
+        GamificationManager.addXP(10);
+        GamificationManager.recordAction('SOLVE', 'Stoichiometry');
+        return newCount;
+      });
+      setQuestions(prev => {
+        const updated = [...prev];
+        updated[index].attempted = true;
+        return updated;
+      });
+    }
+  };
+
+  const bookmarkQuestion = (index) => {
+    setQuestions(prev => {
+      const updated = [...prev];
+      updated[index].bookmarked = !updated[index].bookmarked;
+      return updated;
+    });
+  };
+
+  const filteredQuestions = selectedDifficulty === 'all'
+    ? questions
+    : questions.filter(q => q.difficulty === selectedDifficulty);
+
+  const displayedQuestions = filteredQuestions.slice(0, questionCount);
+
+  const getDifficultyColor = (diff) => {
+    const colors = { beginner: '#10B981', intermediate: '#3B82F6', advanced: '#EF4444' };
+    return colors[diff] || '#888';
+  };
+
+  const getReactionIcon = (type) => {
+    const icons = { synthesis: 'plus-circle', decomposition: 'arrow-split-horizontal', combustion: 'fire' };
+    return icons[type] || 'flask';
+  };
+
+  const getReactionColor = (type) => {
+    const colors = { synthesis: '#10B981', decomposition: '#F59E0B', combustion: '#EF4444' };
+    return colors[type] || '#3B82F6';
+  };
 
   return (
-    <>
-    <ScrollView style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>
-          Problem 1:
-          Given the balanced chemical equation:
-        </Text>
-        <Text style={styles.equation}>
-          2 H₂ + O₂ == 2 H₂O
-        </Text>
+    <View style={styles.container}>
+      <LinearGradient colors={['#070B14', '#0E1525', '#162035']} style={StyleSheet.absoluteFill} />
 
-        <View style={styles.card}>
-          <Text style={styles.question}>
-            a) How many moles of water (H₂O) can be produced from 4 moles of hydrogen (H₂) and excess oxygen (O₂)?
-          </Text>
-          <Text style={styles.solution}>
-            Solution:
-            From the balanced equation, we can see that 2 moles of hydrogen produce 2 moles of water.
-            Therefore, 4 moles of hydrogen will produce 4 moles of water.
-          </Text>
+      <Animated.ScrollView style={{ opacity: fadeAnim }} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <LinearGradient colors={['#3B82F6', '#2563EB', '#1D4ED8']} style={styles.header}>
+          <View style={styles.headerContent}>
+            <Animated.View style={{ transform: [{ rotate: balanceAnim.interpolate({ inputRange: [0, 1], outputRange: ['-5deg', '5deg'] }) }] }}>
+              <MaterialCommunityIcons name="scale-balance" size={44} color="#FFF" />
+            </Animated.View>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Stoichiometry</Text>
+              <Text style={styles.headerSubtitle}>Balance & calculate reactions</Text>
+            </View>
+          </View>
+
+          <View style={styles.statsRow}>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>{questions.filter(q => q.attempted).length}</Text>
+              <Text style={styles.statLabel}>Solved</Text>
+            </View>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>+{solutionsViewed * 10}</Text>
+              <Text style={styles.statLabel}>XP</Text>
+            </View>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>{questions.length}</Text>
+              <Text style={styles.statLabel}>Total</Text>
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* Reaction Types */}
+        <View style={styles.reactionTypes}>
+          <View style={[styles.reactionChip, { backgroundColor: '#10B98120', borderColor: '#10B981' }]}>
+            <MaterialCommunityIcons name="plus-circle" size={16} color="#10B981" />
+            <Text style={[styles.reactionText, { color: '#10B981' }]}>Synthesis</Text>
+          </View>
+          <View style={[styles.reactionChip, { backgroundColor: '#F59E0B20', borderColor: '#F59E0B' }]}>
+            <MaterialCommunityIcons name="arrow-split-horizontal" size={16} color="#F59E0B" />
+            <Text style={[styles.reactionText, { color: '#F59E0B' }]}>Decomp</Text>
+          </View>
+          <View style={[styles.reactionChip, { backgroundColor: '#EF444420', borderColor: '#EF4444' }]}>
+            <MaterialCommunityIcons name="fire" size={16} color="#EF4444" />
+            <Text style={[styles.reactionText, { color: '#EF4444' }]}>Combustion</Text>
+          </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.question}>
-            b) How many grams of oxygen (O₂) are needed to completely react with 5 moles of hydrogen (H₂)?
-          </Text>
-          <Text style={styles.solution}>
-            From the balanced equation, we see that 2 moles of hydrogen react with 1 mole of oxygen. 
-            Therefore, 5 moles of hydrogen will require (5/2) moles of oxygen. To find the grams, 
-            we use the molar mass of oxygen which is approximately 32 g/mol:
-          </Text>
-          <Text style={styles.calculation}>(5/2) moles * 32 g/mol = 80 grams of oxygen.</Text>
+        {/* Key Concept */}
+        <View style={styles.conceptBar}>
+          <Text style={styles.conceptLabel}>Mole Ratio Method</Text>
+          <Text style={styles.conceptFormula}>mol A × (mol B / mol A) = mol B</Text>
         </View>
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.problemText}>
-          Problem 2: Given the balanced chemical equation:
-        </Text>
-        <Text style={styles.equation}>
-          4 NH₃ + 5 O₂ == 4 NO + 6 H₂O
-        </Text>
+        {/* Filter */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          <TouchableOpacity
+            style={[styles.filterChip, selectedDifficulty === 'all' && styles.filterChipActive]}
+            onPress={() => setSelectedDifficulty('all')}
+          >
+            <Text style={[styles.filterText, selectedDifficulty === 'all' && styles.filterTextActive]}>All</Text>
+          </TouchableOpacity>
+          {Object.entries(difficultyLevels).map(([key, level]) => (
+            <TouchableOpacity
+              key={key}
+              style={[styles.filterChip, selectedDifficulty === key && styles.filterChipActive]}
+              onPress={() => setSelectedDifficulty(key)}
+            >
+              <Text style={[styles.filterText, selectedDifficulty === key && styles.filterTextActive]}>{level.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-  
-          <Text style={styles.question}>
-            a) How many moles of nitrogen monoxide (NO) are produced from 3 moles of ammonia (NH₃) and excess oxygen (O₂)?
-          </Text>
-          <Text style={styles.solution}>
-            From the balanced equation, we see that 4 moles of ammonia produce 4 moles of nitrogen monoxide. Therefore, 3 moles of ammonia will produce 3 moles of nitrogen monoxide.
-          </Text>
+        {/* Questions */}
+        {displayedQuestions.map((item, index) => (
+          <View key={item.id} style={styles.questionCard}>
+            <TouchableOpacity style={styles.questionHeader} onPress={() => toggleExpand(index)} activeOpacity={0.8}>
+              <View style={styles.questionLeft}>
+                <View style={[styles.reactionIcon, { backgroundColor: getReactionColor(item.reactionType) + '20' }]}>
+                  <MaterialCommunityIcons name={getReactionIcon(item.reactionType)} size={20} color={getReactionColor(item.reactionType)} />
+                </View>
+                <View style={styles.questionInfo}>
+                  <View style={styles.typeBadge}>
+                    <Text style={styles.typeText}>{item.type}</Text>
+                    <View style={[styles.diffDot, { backgroundColor: getDifficultyColor(item.difficulty) }]} />
+                  </View>
+                  <Text style={styles.questionText} numberOfLines={expandedIndex === index ? 0 : 2}>{item.question}</Text>
+                </View>
+              </View>
+              <View style={styles.questionRight}>
+                <TouchableOpacity onPress={() => bookmarkQuestion(index)}>
+                  <MaterialCommunityIcons name={item.bookmarked ? 'star' : 'star-outline'} size={22} color={item.bookmarked ? '#FACC15' : '#666'} />
+                </TouchableOpacity>
+                <MaterialCommunityIcons name={expandedIndex === index ? 'chevron-up' : 'chevron-down'} size={24} color="#666" />
+              </View>
+            </TouchableOpacity>
 
-          <Text style={styles.question}>
-            b) How many grams of water (H₂O) will be formed if 20 grams of ammonia (NH₃) react with excess oxygen (O₂)?
-          </Text>
-          <Text style={styles.solution}>
-            First, convert 20 grams of ammonia to moles using its molar mass (approximately 17 g/mol):
-          </Text>
-          <Text style={styles.calculation}>20 grams / 17 g/mol ≈ 1.18 moles of NH₃</Text>
-          <Text>From the balanced equation, 4 moles of NH₃ produce 6 moles of water. Therefore, 1.18 moles of NH₃ will produce (1.18 × 6/4) moles of water.</Text>
-          <Text style={styles.calculation}> (1.18 * 6/4) moles * 18 g/mol ≈ 26.55 grams of H₂O.</Text>
-    
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 3: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 C₆H₁₂O₆ == 2 C₂H₅OH + 2 CO₂</Text>
-        <Text style={styles.problemText}>How many moles of ethanol (C₂H₅OH) are produced from 60 grams of glucose (C₆H₁₂O₆)?</Text>
-        <Text style={styles.solution}>First, convert 60 grams of glucose to moles using its molar mass (approximately 180 g/mol):</Text>
-        <Text style={styles.calculation}>60 grams / 180 g/mol = 0.33 moles of C₆H₁₂O₆</Text>
-        <Text style={styles.solution}>From the balanced equation, 2 moles of glucose produce 2 moles of ethanol.</Text>
-        <Text style={styles.solution}>Therefore, 0.33 moles of glucose will produce 0.33 moles of ethanol.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 4: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 Al + 3 Cl₂ == 2 AlCl₃</Text>
-        <Text style={styles.problemText}>How many grams of aluminum chloride (AlCl₃) are produced from 45 grams of aluminum (Al) and excess chlorine (Cl₂)?</Text>
-        <Text style={styles.solution}>First, convert 45 grams of aluminum to moles using its molar mass (approximately 27 g/mol):</Text>
-        <Text style={styles.calculation}>45 grams / 27 g/mol ≈ 1.67 moles of Al</Text>
-        <Text style={styles.solution}>From the balanced equation, 2 moles of aluminum produce 2 moles of aluminum chloride. Therefore, 1.67 moles of aluminum will produce 1.67 moles of aluminum chloride.</Text>
-        <Text style={styles.solution}>Finally, convert moles of aluminum chloride to grams using its molar mass (approximately 133.5 g/mol):</Text>
-        <Text style={styles.solution}>1.67 moles * 133.5 g/mol ≈ 223.5 grams of AlCl₃.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 5: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 H₂ + O₂ == 2 H₂O</Text>
-        <Text style={styles.problemText}>How many molecules of water (H₂O) are produced from 2.5 moles of oxygen (O₂) and excess hydrogen (H₂)?</Text>
-        <Text style={styles.solution}>From the balanced equation, 1 mole of oxygen produces 2 moles of water. Therefore, 2.5 moles of oxygen will produce (2.5 * 2) moles of water.</Text>
-        <Text style={styles.solution}>Now, convert moles to molecules using Avogadro's number (approximately 6.022 * 10²³ molecules/mol):</Text>
-        <Text style={styles.solution}>(2.5 x 2) moles * 6.022 x 10²³ molecules/mol ≈ 3.01 x 10²⁴ molecules of H₂O.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 6: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 NaOH + H₂SO₄ == Na₂SO₄ + 2 H₂O</Text>
-        <Text style={styles.problemText}>How many moles of sodium sulfate (Na₂SO₄) are produced from 3 moles of sodium hydroxide (NaOH) and excess sulfuric acid (H₂SO₄)?</Text>
-        <Text style={styles.solution}>From the balanced equation, 2 moles of NaOH produce 1 mole of Na₂SO₄.</Text>
-        <Text style={styles.solution}>Therefore, 3 moles of NaOH will produce (3/2) moles of Na₂SO₄.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 7: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>CaCO₃ == CaO + CO₂</Text>
-        <Text style={styles.problemText}>How many grams of calcium oxide (CaO) are produced from 75 grams of calcium carbonate (CaCO₃)?</Text>
-        <Text style={styles.solution}>First, convert 75 grams of CaCO₃ to moles using its molar mass (approximately 100.1 g/mol):</Text>
-        <Text style={styles.calculation}>75 grams / 100.1 g/mol ≈ 0.749 moles of CaCO₃</Text>
-        <Text style={styles.solution}>From the balanced equation, 1 mole of CaCO₃ produces 1 mole of CaO. Therefore, 0.749 moles of CaCO₃ will produce 0.749 moles of CaO.</Text>
-        <Text style={styles.solution}>Finally, convert moles of CaO to grams using its molar mass (approximately 56.1 g/mol):</Text>
-        <Text style={styles.solution}>0.749 moles * 56.1 g/mol ≈ 42.04 grams of CaO.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 8: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>C₆H₁₂O₆ == 2 C₂H₅OH + 2 CO₂</Text>
-        <Text style={styles.problemText}>How many grams of ethanol (C₂H₅OH) are produced from 150 grams of glucose (C₆H₁₂O₆)?</Text>
-        <Text style={styles.solution}>First, convert 150 grams of glucose to moles using its molar mass (approximately 180 g/mol):</Text>
-        <Text style={styles.calculation}>150 grams / 180 g/mol = 0.83 moles of C₆H₁₂O₆</Text>
-        <Text style={styles.solution}>From the balanced equation, 1 mole of glucose produces 2 moles of ethanol. Therefore, 0.83 moles of glucose will produce (0.83 x 2) moles of ethanol.</Text>
-        <Text style={styles.solution}>Finally, convert moles of ethanol to grams using its molar mass (approximately 46.1 g/mol):</Text>
-        <Text style={styles.solution}>(0.83 x 2) moles * 46.1 g/mol ≈ 76.26 grams of C₂H₅OH.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 9: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 Fe + 3 Cl₂ == 2 FeCl₃</Text>
-        <Text style={styles.problemText}>How many grams of iron chloride (FeCl₃) are produced from 50 grams of iron (Fe) and excess chlorine (Cl₂)?</Text>
-        <Text style={styles.solution}>First, convert 50 grams of iron to moles using its molar mass (approximately 55.8 g/mol):</Text>
-        <Text style={styles.calculation}>50 grams / 55.8 g/mol ≈ 0.894 moles of Fe</Text>
-        <Text style={styles.solution}>From the balanced equation, 2 moles of Fe produce 2 moles of FeCl₃. Therefore, 0.894 moles of Fe will produce 0.894 moles of FeCl₃.</Text>
-        <Text style={styles.solution}>Finally, convert moles of FeCl₃ to grams using its molar mass (approximately 162.2 g/mol):</Text>
-        <Text style={styles.solution}>0.894 moles * 162.2 g/mol ≈ 144.9 grams of FeCl₃.</Text>
+            {expandedIndex === index && (
+              <View style={styles.solutionSection}>
+                <LinearGradient colors={['#10B981', '#059669']} style={styles.answerBox}>
+                  <Text style={styles.answerLabel}>Answer</Text>
+                  <Text style={styles.answerValue}>{item.solution.answer}</Text>
+                </LinearGradient>
 
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 10: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 KClO₃ == 2 KCl + 3 O₂</Text>
-        <Text style={styles.problemText}>How many molecules of oxygen (O₂) are produced from 5 moles of potassium chlorate (KClO₃)?</Text>
-        <Text style={styles.solution}>From the balanced equation, 2 moles of KClO₃ produce 3 moles of O₂. Therefore, 5 moles of KClO₃ will produce (5 × 3/2) moles of O₂.</Text>
-        <Text style={styles.solution}>Now, convert moles to molecules using Avogadro's number (approximately 6.022 x 10²³ molecules/mol):</Text>
-        <Text style={styles.solution}>(5 x 3/2) moles * 6.022 x 10²³ molecules/mol ≈ 4.51 x 10²⁴ molecules of O₂.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 11: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>N₂ + 3 H₂ == 2 NH₃</Text>
-        <Text style={styles.problemText}>How many moles of ammonia (NH₃) are produced from 4 moles of nitrogen (N₂) and excess hydrogen (H₂)?</Text>
-        <Text style={styles.solution}>From the balanced equation, 1 mole of N₂ produces 2 moles of NH₃. Therefore, 4 moles of N₂ will produce 8 moles of NH₃.</Text>
-        <Text style={styles.problemText}>How many grams of hydrogen (H₂) are needed to completely react with 10 moles of nitrogen (N₂)?</Text>
-        <Text style={styles.solution}>From the balanced equation, 1 mole of N₂ reacts with 3 moles of H₂. Therefore, 10 moles of N₂ will require (10 x 3) moles of H₂.</Text>
-        <Text style={styles.solution}>Finally, convert moles of H₂ to grams using its molar mass (approximately 2 g/mol):</Text>
-        <Text style={styles.solution}>(10 x 3) moles * 2 g/mol = 60 grams of H₂.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 12: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 H₂O == 2 H₂ + O₂</Text>
-        <Text style={styles.problemText}>How many grams of oxygen (O₂) are produced from 50 grams of water (H₂O)?</Text>
-        <Text style={styles.solution}>First, convert 50 grams of H₂O to moles using its molar mass (approximately 18 g/mol):</Text>
-        <Text style={styles.calculation}>50 grams / 18 g/mol ≈ 2.78 moles of H₂O</Text>
-        <Text style={styles.solution}>From the balanced equation, 2 moles of H₂O produce 1 mole of O₂. Therefore, 2.78 moles of H₂O will produce (2.78/2) moles of O₂.</Text>
-        <Text style={styles.solution}>Finally, convert moles of O₂ to grams using its molar mass (approximately 32 g/mol):</Text>
-        <Text style={styles.solution}>(2.78/2) moles * 32 g/mol ≈ 44.48 grams of O₂.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 13: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 Al + 6 HCl == 2 AlCl₃ + 3 H₂</Text>
-        <Text style={styles.problemText}>How many moles of hydrogen gas (H₂) are produced from 5 moles of hydrochloric acid (HCl) and excess aluminum (Al)?</Text>
-        <Text style={styles.solution}>From the balanced equation, 6 moles of HCl produce 3 moles of H₂.</Text>
-        <Text style={styles.solution}>Therefore, 5 moles of HCl will produce (5 x 3/6) moles of H₂.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 14: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>CH₄ + 2 O₂ == CO₂ + 2 H₂O</Text>
-        <Text style={styles.problemText}>How many grams of oxygen (O₂) are needed to completely react with 10 moles of methane (CH₄)?</Text>
-        <Text style={styles.solution}>From the balanced equation, 1 mole of CH₄ reacts with 2 moles of O₂. Therefore, 10 moles of CH₄ will require (10 x 2) moles of O₂.</Text>
-        <Text style={styles.solution}>Finally, convert moles of O₂ to grams using its molar mass (approximately 32 g/mol):</Text>
-        <Text style={styles.solution}>(10 x 2) moles * 32 g/mol = 640 grams of O₂.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 15: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>2 Mg + O₂ == 2 MgO</Text>
-        <Text style={styles.problemText}> How many grams of oxygen (O₂) are needed to completely react with 25 grams of magnesium (Mg)?</Text>
-        <Text style={styles.solution}>Convert 25 grams of Mg to moles using its molar mass (approximately 24.3 g/mol):</Text>
-        <Text style={styles.calculation}>25 grams / 24.3 g/mol ≈ 1.03 moles of Mg</Text>
-        <Text style={styles.solution}>From the balanced equation, 2 moles of Mg react with 1 mole of O₂. Therefore, 1.03 moles of Mg will require (1.03/2) moles of O₂.</Text>
-        <Text style={styles.solution}>Finally, convert moles of O₂ to grams using its molar mass (approximately 32 g/mol):</Text>
-        <Text style={styles.result}>(1.03/2) moles * 32 g/mol ≈ 16.5 grams of O₂.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 16: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>C₄H₁₀ + 6.5 O₂ == 4 CO₂ + 5 H₂O</Text>
-        <Text style={styles.problemText}>How many grams of water (H₂O) are produced from 50 grams of butane (C₄H₁₀) and excess oxygen (O₂)?</Text>
-        <Text style={styles.solution}>First, convert 50 grams of C₄H₁₀ to moles using its molar mass (approximately 58.1 g/mol):</Text>
-        <Text style={styles.calculation}>50 grams / 58.1 g/mol ≈ 0.861 moles of C₄H₁₀</Text>
-        <Text style={styles.solution}>From the balanced equation, 1 mole of C₄H₁₀ produces 5 moles of H₂O. Therefore, 0.861 moles of C₄H₁₀ will produce (0.861 × 5) moles of H₂O.</Text>
-        <Text style={styles.solution}>Finally, convert moles of H₂O to grams using its molar mass (approximately 18 g/mol):</Text>
-        <Text style={styles.solution}>(0.861 x 5) moles * 18 g/mol ≈ 77.5 grams of H₂O.</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.problemText}>Problem 17: Given the balanced chemical equation:</Text>
-        <Text style={styles.equation}>3 CaCO₃ == 3 CaO + 3 CO₂</Text>
-        <Text style={styles.problemText}>How many grams of calcium oxide (CaO) are produced from 100 grams of calcium carbonate (CaCO₃)?</Text>
-        <Text style={styles.solution}>First, convert 100 grams of CaCO₃ to moles using its molar mass (approximately 100.1 g/mol):</Text>
-        <Text style={styles.calculation}>100 grams / 100.1 g/mol ≈ 0.999 moles of CaCO₃</Text>
-        <Text style={styles.solution}>From the balanced equation, 3 moles of CaCO₃ produce 3 moles of CaO. Therefore, 0.999 moles of CaCO₃ will produce 0.999 moles of CaO.</Text>
-        <Text style={styles.solution}>Finally, convert moles of CaO to grams using its molar mass (approximately 56.1 g/mol):</Text>
-        <Text style={styles.solution}>0.999 moles * 56.1 g/mol ≈ 56 grams of CaO.</Text>
-      </View>
+                <View style={styles.stepsContainer}>
+                  <Text style={styles.stepsTitle}>⚖️ Solution Steps</Text>
+                  {item.solution.steps.map((step, i) => (
+                    <View key={i} style={styles.stepRow}>
+                      <LinearGradient colors={['#3B82F6', '#2563EB']} style={styles.stepNumber}>
+                        <Text style={styles.stepNumberText}>{i + 1}</Text>
+                      </LinearGradient>
+                      <Text style={styles.stepText}>{step}</Text>
+                    </View>
+                  ))}
+                </View>
 
-      <View style={styles.card}>
-  <Text style={styles.problemText}>Problem 18: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>4 NH₃ + 5 O₂ == 4 NO + 6 H₂O</Text>
-  <Text style={styles.problemText}>How many moles of nitric oxide (NO) are produced from 8 moles of ammonia (NH₃) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>From the balanced equation, 4 moles of NH₃ produce 4 moles of NO.</Text>
-  <Text style={styles.solution}>Therefore, 8 moles of NH₃ will produce 8 moles of NO.</Text>
-</View>
+                <View style={styles.insightBox}>
+                  <MaterialCommunityIcons name="lightbulb-on" size={18} color="#3B82F6" />
+                  <Text style={styles.insightText}>{item.solution.explanation}</Text>
+                </View>
 
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 19: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>C₃H₈ + 5 O₂ == 3 CO₂ + 4 H₂O</Text>
-  <Text style={styles.problemText}>How many grams of water (H₂O) are produced from 20 grams of propane (C₃H₈) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 20 grams of C₃H₈ to moles using its molar mass (approximately 44 g/mol):</Text>
-  <Text style={styles.calculation}>20 grams / 44 g/mol ≈ 0.455 moles of C₃H₈</Text>
-  <Text style={styles.solution}>From the balanced equation, 1 mole of C₃H₈ produces 4 moles of H₂O. Therefore, 0.455 moles of C₃H₈ will produce (0.455 × 4) moles of H₂O.</Text>
-  <Text style={styles.solution}>Finally, convert moles of H₂O to grams using its molar mass (approximately 18 g/mol):</Text>
-  <Text style={styles.solution}>(0.455 x 4) moles * 18 g/mol ≈ 32.72 grams of H₂O.</Text>
-</View>
+                <TouchableOpacity style={styles.shareBtn} onPress={() => ShareManager.shareCalculation('Stoichiometry', item.question, item.solution.answer)}>
+                  <MaterialCommunityIcons name="share-variant" size={18} color="#3B82F6" />
+                  <Text style={styles.shareBtnText}>Share Solution</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 20: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 C₄H₁₀ + 13 O₂ == 8 CO₂ + 10 H₂O</Text>
-  <Text style={styles.problemText}>How many moles of carbon dioxide (CO₂) are produced from 30 moles of butane (C₄H₁₀) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of C₄H₁₀ produce 8 moles of CO₂.</Text>
-  <Text style={styles.solution}>Therefore, 30 moles of C₄H₁₀ will produce (30 × 8/2) moles of CO₂.</Text>
-</View>
+            {item.attempted && (
+              <View style={styles.attemptedBadge}>
+                <MaterialCommunityIcons name="check" size={12} color="#10B981" />
+              </View>
+            )}
+          </View>
+        ))}
 
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 21: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>3 Mg + 2 H₃PO₄ == Mg₃(PO₄)₂ + 3 H₂</Text>
-  <Text style={styles.problemText}>How many grams of magnesium phosphate (Mg₃(PO₄)₂) are produced from 50 grams of magnesium (Mg) and excess phosphoric acid (H₃PO₄)?</Text>
-  <Text style={styles.solution}>First, convert 50 grams of Mg to moles using its molar mass (approximately 24.3 g/mol):</Text>
-  <Text style={styles.calculation}>50 grams / 24.3 g/mol ≈ 2.06 moles of Mg</Text>
-  <Text style={styles.solution}>From the balanced equation, 3 moles of Mg produce 1 mole of Mg₃(PO₄)₂. Therefore, 2.06 moles of Mg will produce (2.06 × 1/3) moles of Mg₃(PO₄)₂.</Text>
-  <Text style={styles.solution}>Finally, convert moles of Mg₃(PO₄)₂ to grams using its molar mass (approximately 262.86 g/mol):</Text>
-  <Text style={styles.solution}>(2.06 × 1/3) moles * 262.86 g/mol ≈ 54.15 grams of Mg₃(PO₄)₂.</Text>
-</View>
+        {questionCount < filteredQuestions.length && (
+          <TouchableOpacity style={styles.loadMoreBtn} onPress={() => setQuestionCount(prev => Math.min(prev + 10, filteredQuestions.length))}>
+            <Text style={styles.loadMoreText}>Load More</Text>
+            <MaterialCommunityIcons name="chevron-down" size={20} color="#FFF" />
+          </TouchableOpacity>
+        )}
 
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 22: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 K + 2 H₂O == 2 KOH + H₂</Text>
-  <Text style={styles.problemText}>How many moles of potassium hydroxide (KOH) are produced from 4 moles of potassium (K) and excess water (H₂O)?</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of K produce 2 moles of KOH.</Text>
-  <Text style={styles.solution}>Therefore, 4 moles of K will produce 4 moles of KOH.</Text>
-</View>
+        <TouchableOpacity style={styles.regenerateBtn} onPress={generateQuestions}>
+          <MaterialCommunityIcons name="refresh" size={18} color="#888" />
+          <Text style={styles.regenerateText}>Generate New Questions</Text>
+        </TouchableOpacity>
 
+        <View style={{ height: 100 }} />
+      </Animated.ScrollView>
 
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 23: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>4 PCl₃ + 5 O₂ == 4 P₄O₁₀ + 6 Cl₂</Text>
-  <Text style={styles.problemText}>How many grams of tetraphosphorus decaoxide (P₄O₁₀) are produced from 15 grams of phosphorous trichloride (PCl₃) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 15 grams of PCl₃ to moles using its molar mass (approximately 137.33 g/mol):</Text>
-  <Text style={styles.calculation}>15 grams / 137.33 g/mol ≈ 0.109 moles of PCl₃</Text>
-  <Text style={styles.solution}>From the balanced equation, 4 moles of PCl₃ produce 4 moles of P₄O₁₀. Therefore, 0.109 moles of PCl₃ will produce (0.109 × 4/4) moles of P₄O₁₀.</Text>
-  <Text style={styles.solution}>Finally, convert moles of P₄O₁₀ to grams using its molar mass (approximately 283.89 g/mol):</Text>
-  <Text style={styles.solution}>(0.109 × 4/4) moles * 283.89 g/mol ≈ 28.39 grams of P₄O₁₀.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 24: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 C₄H₁₀ + 17 O₂ == 8 CO₂ + 10 H₂O</Text>
-  <Text style={styles.problemText}>How many moles of water (H₂O) are produced from 40 moles of butane (C₄H₁₀) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of C₄H₁₀ produce 10 moles of H₂O.</Text>
-  <Text style={styles.solution}>Therefore, 40 moles of C₄H₁₀ will produce (40 × 10/2) moles of H₂O.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 25: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>3 Fe + 4 H₂O == Fe₃O₄ + 4 H₂</Text>
-  <Text style={styles.problemText}>How many grams of iron(II,III) oxide (Fe₃O₄) are produced from 100 grams of iron (Fe) and excess water (H₂O)?</Text>
-  <Text style={styles.solution}>First, convert 100 grams of Fe to moles using its molar mass (approximately 55.85 g/mol):</Text>
-  <Text style={styles.calculation}>100 grams / 55.85 g/mol ≈ 1.79 moles of Fe</Text>
-  <Text style={styles.solution}>From the balanced equation, 3 moles of Fe produce 1 mole of Fe₃O₄. Therefore, 1.79 moles of Fe will produce (1.79 × 1/3) moles of Fe₃O₄.</Text>
-  <Text style={styles.solution}>Finally, convert moles of Fe₃O₄ to grams using its molar mass (approximately 231.53 g/mol):</Text>
-  <Text style={styles.solution}>(1.79 × 1/3) moles * 231.53 g/mol ≈ 134.77 grams of Fe₃O₄.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 26: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 KNO₃ == 2 KNO₂ + O₂</Text>
-  <Text style={styles.problemText}>How many molecules of nitric oxide (NO) are produced from 2 moles of potassium nitrate (KNO₃)?</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of KNO₃ produce 2 moles of NO.</Text>
-  <Text style={styles.solution}>Now, convert moles to molecules using Avogadro's number (approximately 6.022 x 10²³ molecules/mol):</Text>
-  <Text style={styles.solution}>(2 × 2) moles * 6.022 x 10²³ molecules/mol ≈ 2.41 x 10²⁴ molecules of NO.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 27: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>C₆H₁₂O₆ + 6 O₂ == 6 CO₂ + 6 H₂O</Text>
-  <Text style={styles.problemText}>How many grams of carbon dioxide (CO₂) are produced from 90 grams of glucose (C₆H₁₂O₆) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 90 grams of C₆H₁₂O₆ to moles using its molar mass (approximately 180.16 g/mol):</Text>
-  <Text style={styles.calculation}>90 grams / 180.16 g/mol ≈ 0.499 moles of C₆H₁₂O₆</Text>
-  <Text style={styles.solution}>From the balanced equation, 1 mole of C₆H₁₂O₆ produces 6 moles of CO₂. Therefore, 0.499 moles of C₆H₁₂O₆ will produce (0.499 × 6) moles of CO₂.</Text>
-  <Text style={styles.solution}>Finally, convert moles of CO₂ to grams using its molar mass (approximately 44.01 g/mol):</Text>
-  <Text style={styles.solution}>(0.499 × 6) moles * 44.01 g/mol ≈ 132.27 grams of CO₂.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 28: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 C₃H₈ + 7 O₂ == 6 CO₂ + 8 H₂O</Text>
-  <Text style={styles.problemText}>How many moles of carbon dioxide (CO₂) are produced from the complete combustion of 25 grams of propane (C₃H₈) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 25 grams of C₃H₈ to moles using its molar mass (approximately 44.09 g/mol):</Text>
-  <Text style={styles.calculation}>25 grams / 44.09 g/mol ≈ 0.567 moles of C₃H₈</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of C₃H₈ produce 6 moles of CO₂. Therefore, 0.567 moles of C₃H₈ will produce (0.567 × 6/2) moles of CO₂.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 29: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>3 Na₂CO₃ + 2 Fe(NO₃)₃ == 6 NaNO₃ + Fe₂(CO₃)₃</Text>
-  <Text style={styles.problemText}>How many grams of iron(III) carbonate (Fe₂(CO₃)₃) are produced from the reaction of 150 grams of sodium carbonate (Na₂CO₃) and 200 grams of iron(III) nitrate (Fe(NO₃)₃)?</Text>
-  <Text style={styles.solution}>First, convert 150 grams of Na₂CO₃ to moles using its molar mass (approximately 105.99 g/mol):</Text>
-  <Text style={styles.calculation}>150 grams / 105.99 g/mol ≈ 1.415 moles of Na₂CO₃</Text>
-  <Text style={styles.solution}>Next, convert 200 grams of Fe(NO₃)₃ to moles using its molar mass (approximately 241.91 g/mol):</Text>
-  <Text style={styles.calculation}>200 grams / 241.91 g/mol ≈ 0.827 moles of Fe(NO₃)₃</Text>
-  <Text style={styles.solution}>From the balanced equation, 3 moles of Na₂CO₃ react with 2 moles of Fe(NO₃)₃ to produce 1 mole of Fe₂(CO₃)₃. Therefore, the limiting reactant is Na₂CO₃, and the reaction will produce 1.415 moles of Fe₂(CO₃)₃.</Text>
-  <Text style={styles.solution}>Finally, convert moles of Fe₂(CO₃)₃ to grams using its molar mass (approximately 291.72 g/mol):</Text>
-  <Text style={styles.solution}>1.415 moles * 291.72 g/mol ≈ 412.79 grams of Fe₂(CO₃)₃.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 30: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>C₄H₁₀ + 6 O₂ == 4 CO₂ + 5 H₂O</Text>
-  <Text style={styles.problemText}>How many molecules of water (H₂O) are produced from the complete combustion of 30 grams of butane (C₄H₁₀) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 30 grams of C₄H₁₀ to moles using its molar mass (approximately 58.12 g/mol):</Text>
-  <Text style={styles.calculation}>30 grams / 58.12 g/mol ≈ 0.516 moles of C₄H₁₀</Text>
-  <Text style={styles.solution}>From the balanced equation, 1 mole of C₄H₁₀ produces 5 moles of H₂O. Therefore, 0.516 moles of C₄H₁₀ will produce (0.516 × 5) moles of H₂O.</Text>
-  <Text style={styles.solution}>Now, convert moles to molecules using Avogadro's number (approximately 6.022 x 10²³ molecules/mol):</Text>
-  <Text style={styles.solution}>(0.516 × 5) moles * 6.022 x 10²³ molecules/mol ≈ 1.54 x 10²⁴ molecules of H₂O.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 31: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 KBr + Cl₂ == 2 KCl + Br₂</Text>
-  <Text style={styles.problemText}>How many moles of potassium chloride (KCl) are produced from the reaction of 25 grams of potassium bromide (KBr) and excess chlorine (Cl₂)?</Text>
-  <Text style={styles.solution}>First, convert 25 grams of KBr to moles using its molar mass (approximately 119 g/mol):</Text>
-  <Text style={styles.calculation}>25 grams / 119 g/mol ≈ 0.210 moles of KBr</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of KBr react with 1 mole of Cl₂ to produce 2 moles of KCl. Therefore, 0.210 moles of KBr will produce (0.210 × 2/2) moles of KCl.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 32: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>N₂ + 3 F₂ == 2 NF₃</Text>
-  <Text style={styles.problemText}>How many grams of nitrogen trifluoride (NF₃) are produced from the reaction of 50 grams of nitrogen (N₂) and excess fluorine (F₂)?</Text>
-  <Text style={styles.solution}>First, convert 50 grams of N₂ to moles using its molar mass (approximately 28.02 g/mol):</Text>
-  <Text style={styles.calculation}>50 grams / 28.02 g/mol ≈ 1.784 moles of N₂</Text>
-  <Text style={styles.solution}>From the balanced equation, 1 mole of N₂ reacts with 3 moles of F₂ to produce 2 moles of NF₃. Therefore, 1.784 moles of N₂ will produce (1.784 × 2/1) moles of NF₃.</Text>
-  <Text style={styles.solution}>Finally, convert moles of NF₃ to grams using its molar mass (approximately 71.0 g/mol):</Text>
-  <Text style={styles.solution}>(1.784 × 2/1) moles * 71.0 g/mol ≈ 252.4 grams of NF₃.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 33: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 H₂S + 3 O₂ == 2 H₂SO₄</Text>
-  <Text style={styles.problemText}>How many grams of sulfuric acid (H₂SO₄) are produced from the reaction of 40 grams of hydrogen sulfide (H₂S) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 40 grams of H₂S to moles using its molar mass (approximately 34.08 g/mol):</Text>
-  <Text style={styles.calculation}>40 grams / 34.08 g/mol ≈ 1.174 moles of H₂S</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of H₂S react with 3 moles of O₂ to produce 2 moles of H₂SO₄. Therefore, 1.174 moles of H₂S will produce (1.174 × 2/2) moles of H₂SO₄.</Text>
-  <Text style={styles.solution}>Finally, convert moles of H₂SO₄ to grams using its molar mass (approximately 98.08 g/mol):</Text>
-  <Text style={styles.solution}>(1.174 × 2/2) moles * 98.08 g/mol ≈ 114.9 grams of H₂SO₄.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 34: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>4 NH₃ + 5 O₂ == 4 NO + 6 H₂O</Text>
-  <Text style={styles.problemText}>How many grams of nitric oxide (NO) are produced from the reaction of 30 grams of ammonia (NH₃) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 30 grams of NH₃ to moles using its molar mass (approximately 17.03 g/mol):</Text>
-  <Text style={styles.calculation}>30 grams / 17.03 g/mol ≈ 1.763 moles of NH₃</Text>
-  <Text style={styles.solution}>From the balanced equation, 4 moles of NH₃ react with 5 moles of O₂ to produce 4 moles of NO. Therefore, 1.763 moles of NH₃ will produce (1.763 × 4/4) moles of NO.</Text>
-  <Text style={styles.solution}>Finally, convert moles of NO to grams using its molar mass (approximately 30.01 g/mol):</Text>
-  <Text style={styles.solution}>(1.763 × 4/4) moles * 30.01 g/mol ≈ 52.53 grams of NO.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 35: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>C₄H₁₀ + 13/2 O₂ == 4 CO₂ + 5 H₂O</Text>
-  <Text style={styles.problemText}>How many grams of water (H₂O) are produced from the complete combustion of 60 grams of butane (C₄H₁₀) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 60 grams of C₄H₁₀ to moles using its molar mass (approximately 58.12 g/mol):</Text>
-  <Text style={styles.calculation}>60 grams / 58.12 g/mol ≈ 1.033 moles of C₄H₁₀</Text>
-  <Text style={styles.solution}>From the balanced equation, 1 mole of C₄H₁₀ produces 5 moles of H₂O. Therefore, 1.033 moles of C₄H₁₀ will produce (1.033 × 5) moles of H₂O.</Text>
-  <Text style={styles.solution}>Finally, convert moles of H₂O to grams using its molar mass (approximately 18.02 g/mol):</Text>
-  <Text style={styles.solution}>(1.033 × 5) moles * 18.02 g/mol ≈ 92.3 grams of H₂O.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 36: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>2 C₂H₆ + 7 O₂ == 4 CO₂ + 6 H₂O</Text>
-  <Text style={styles.problemText}>How many molecules of carbon dioxide (CO₂) are produced from the complete combustion of 40 grams of ethane (C₂H₆) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 40 grams of C₂H₆ to moles using its molar mass (approximately 30.07 g/mol):</Text>
-  <Text style={styles.calculation}>40 grams / 30.07 g/mol ≈ 1.33 moles of C₂H₆</Text>
-  <Text style={styles.solution}>From the balanced equation, 2 moles of C₂H₆ produce 4 moles of CO₂. Therefore, 1.33 moles of C₂H₆ will produce (1.33 × 4/2) moles of CO₂.</Text>
-  <Text style={styles.solution}>Now, convert moles to molecules using Avogadro's number (approximately 6.022 x 10²³ molecules/mol):</Text>
-  <Text style={styles.solution}>(1.33 × 4/2) moles * 6.022 x 10²³ molecules/mol ≈ 3.18 x 10²⁴ molecules of CO₂.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 37: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>3 Mg + N₂ == Mg₃N₂</Text>
-  <Text style={styles.problemText}>How many moles of magnesium nitride (Mg₃N₂) are produced from the reaction of 25 grams of magnesium (Mg) and excess nitrogen (N₂)?</Text>
-  <Text style={styles.solution}>First, convert 25 grams of Mg to moles using its molar mass (approximately 24.31 g/mol):</Text>
-  <Text style={styles.calculation}>25 grams / 24.31 g/mol ≈ 1.028 moles of Mg</Text>
-  <Text style={styles.solution}>From the balanced equation, 3 moles of Mg react with 1 mole of N₂ to produce 1 mole of Mg₃N₂. Therefore, 1.028 moles of Mg will produce (1.028 × 1/3) moles of Mg₃N₂.</Text>
-</View>
-
-<View style={styles.card}>
-  <Text style={styles.problemText}>Problem 38: Given the balanced chemical equation:</Text>
-  <Text style={styles.equation}>4 Fe + 3 O₂ == 2 Fe₂O₃</Text>
-  <Text style={styles.problemText}>How many grams of iron(III) oxide (Fe₂O₃) are produced from the reaction of 60 grams of iron (Fe) and excess oxygen (O₂)?</Text>
-  <Text style={styles.solution}>First, convert 60 grams of Fe to moles using its molar mass (approximately 55.85 g/mol):</Text>
-  <Text style={styles.calculation}>60 grams / 55.85 g/mol ≈ 1.075 moles of Fe</Text>
-  <Text style={styles.solution}>From the balanced equation, 4 moles of Fe react with 3 moles of O₂ to produce 2 moles of Fe₂O₃. Therefore, 1.075 moles of Fe will produce (1.075 × 2/4) moles of Fe₂O₃.</Text>
-  <Text style={styles.solution}>Finally, convert moles of Fe₂O₃ to grams using its molar mass (approximately 159.69 g/mol):</Text>
-  <Text style={styles.solution}>(1.075 × 2/4) moles * 159.69 g/mol ≈ 85.29 grams of Fe₂O₃.</Text>
-</View>
-
-
-
-
-      <View style={styles.try}>
-        <Text style={styles.tryText}>Try It Yourself </Text>
-      </View>
-      <View style={styles.work}>
-        <Text style={styles.equation}>2 H₂ + Cl₂ == 2 HCl</Text>
-        <Text style={styles.problemText}>How many grams of chlorine (Cl₂) are needed to completely react with 30 moles of hydrogen (H₂)?</Text>
-        <Text style={styles.problemText}>How many moles of hydrochloric acid (HCl) are produced from 5 moles of hydrogen (H₂) and excess chlorine (Cl₂)?</Text>
-      </View>
-
-      <View style={styles.work}>
-        <Text style={styles.equation}>2 C₃H₈ + 7 O₂ == 6 CO₂ + 8 H₂O</Text>
-        <Text style={styles.problemText}>How many moles of carbon dioxide (CO₂) are produced from 3 moles of propane (C₃H₈) and excess oxygen (O₂)?</Text>
-      </View>
-
-      <View style={styles.work}>
-        <Text style={styles.equation}>2 Na + Cl₂ == 2 NaCl</Text>
-        <Text style={styles.problemText}>How many grams of sodium chloride (NaCl) are produced from 20 grams of sodium (Na) and excess chlorine (Cl₂)?</Text>
-      </View>
-
-      <View style={styles.work}>
-        <Text style={styles.equation}>CH₄ + 2 O₂ == CO₂ + 2 H₂O</Text>
-        <Text style={styles.problemText}>How many grams of oxygen are needed to completely burn 10.0 grams of methane (CH4)?</Text>
-      </View>
-
-      <View style={styles.work}>
-        <Text style={styles.equation}>KOH + HCl == KCl + H₂O</Text>
-        <Text style={styles.problemText}>How many grams of potassium chloride (KCl) can be produced by reacting 100.0 grams of potassium hydroxide (KOH) with 100.0 grams of hydrochloric acid (HCl)?</Text>
-      </View>
-      
-      
-      {/* Add other problems and solutions similarly */}
-    </ScrollView>
-    <View style={styles.adContainer}>
-        <BannerAd
-          unitId={adUnitId}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          requestOptions={{
-            requestNonPersonalizedAdsOnly: false,
-          }}
-        />
-      </View>
-  </>
+      {AdManager.shouldShowBanner('Stoichiometry') && (
+        <View style={styles.adContainer}>
+          <BannerAd unitId={AdManager.getBannerUnitId('result')} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#F7F0F7', // Light Gray Background
-    marginBottom: 50,
-  },
-  adContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    alignItems: 'center',
-  },
-  card: {
-    marginBottom: 24,
-    backgroundColor: '#FFFFFF', // White Background
-    shadowColor: "grey",
-    shadowOffset: { width: 2, height: 2 },
-    borderRadius: 10,
-    padding: 10,
-    elevation: 5, // Add a slight shadow for depth
-  },
-  problemText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#4E7ECE', // Blue Color
-  },
-  equation: {
-    fontSize: 18,
-    marginBottom: 16,
-    color: '#333333', // Dark Gray Text
-  },
-  question: {
-    fontSize: 18,
-    marginBottom: 8,
-    color: '#4E7ECE', // Blue Color
-  },
-  solution: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#333333', // Dark Gray Text
-  },
-  calculation: {
-    fontSize: 16,
-    color: '#4E7ECA', // Blue Color
-    marginBottom: 8,
-  },
-  work: {
-    marginBottom: 24,
-    elevation: 4,
-    backgroundColor: 'silver',
-    borderRadius: 10,
-    shadowColor: "grey",
-    padding: 10,
-    shadowOffset: { width: 2, height: 2 },
-  }, 
-  try: {
-    padding: 20,
-    margin: 20,
-    alignItems: 'center',
-    borderColor: 'red'
+  container: { flex: 1, backgroundColor: THEME.background },
 
-  },
-  tryText: {
-    fontSize: 24,
-    fontWeight: 'bold'
-  }
+  header: { margin: 16, borderRadius: 20, padding: 20, paddingTop: Platform.OS === 'ios' ? 50 : 20 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  headerText: { marginLeft: 16 },
+  headerTitle: { color: '#FFF', fontSize: 28, fontWeight: '800' },
+  headerSubtitle: { color: '#FFFFFF80', fontSize: 14, marginTop: 4 },
+
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  statPill: { backgroundColor: '#FFFFFF20', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, alignItems: 'center' },
+  statValue: { color: '#FFF', fontSize: 20, fontWeight: '800' },
+  statLabel: { color: '#FFFFFF80', fontSize: 10, marginTop: 2 },
+
+  reactionTypes: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginHorizontal: 16, marginBottom: 16 },
+  reactionChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, gap: 6 },
+  reactionText: { fontSize: 12, fontWeight: '600' },
+
+  conceptBar: { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#3B82F620', borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#3B82F640' },
+  conceptLabel: { color: '#60A5FA', fontSize: 11, fontWeight: '600', marginBottom: 4 },
+  conceptFormula: { color: '#FFF', fontSize: 14, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+
+  filterScroll: { paddingHorizontal: 16, paddingBottom: 16, gap: 10 },
+  filterChip: { backgroundColor: '#FFFFFF08', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, marginRight: 10 },
+  filterChipActive: { backgroundColor: '#3B82F6' },
+  filterText: { color: '#888', fontSize: 13, fontWeight: '600' },
+  filterTextActive: { color: '#FFF' },
+
+  questionCard: { backgroundColor: THEME.card, marginHorizontal: 16, marginBottom: 14, borderRadius: 16, borderWidth: 1, borderColor: THEME.cardBorder, overflow: 'hidden' },
+  questionHeader: { flexDirection: 'row', padding: 16 },
+  questionLeft: { flex: 1, flexDirection: 'row', alignItems: 'flex-start' },
+  reactionIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  questionInfo: { flex: 1 },
+  typeBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  typeText: { color: '#3B82F6', fontSize: 11, fontWeight: '600', textTransform: 'uppercase' },
+  diffDot: { width: 8, height: 8, borderRadius: 4 },
+  questionText: { color: '#FFF', fontSize: 14, lineHeight: 20 },
+  questionRight: { alignItems: 'center', gap: 10 },
+
+  solutionSection: { padding: 16, backgroundColor: '#070B14', borderTopWidth: 1, borderTopColor: THEME.cardBorder },
+  answerBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 12, marginBottom: 16 },
+  answerLabel: { color: '#FFFFFF80', fontSize: 12, fontWeight: '600' },
+  answerValue: { color: '#FFF', fontSize: 20, fontWeight: '800' },
+
+  stepsContainer: { backgroundColor: '#FFFFFF08', borderRadius: 12, padding: 16, marginBottom: 16 },
+  stepsTitle: { color: '#3B82F6', fontSize: 14, fontWeight: '700', marginBottom: 12 },
+  stepRow: { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-start' },
+  stepNumber: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  stepNumberText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  stepText: { flex: 1, color: '#CCC', fontSize: 14, lineHeight: 20 },
+
+  insightBox: { flexDirection: 'row', backgroundColor: '#3B82F615', padding: 14, borderRadius: 10, marginBottom: 16, gap: 10, alignItems: 'flex-start' },
+  insightText: { flex: 1, color: '#60A5FA', fontSize: 13, lineHeight: 18 },
+
+  shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3B82F620', padding: 12, borderRadius: 10, gap: 8 },
+  shareBtnText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
+
+  attemptedBadge: { position: 'absolute', top: 8, right: 8, width: 20, height: 20, borderRadius: 10, backgroundColor: '#10B98130', justifyContent: 'center', alignItems: 'center' },
+
+  loadMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3B82F6', marginHorizontal: 16, padding: 16, borderRadius: 12, gap: 8 },
+  loadMoreText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+
+  regenerateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginTop: 12, padding: 14, gap: 8 },
+  regenerateText: { color: '#888', fontSize: 14, fontWeight: '600' },
+
+  adContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: THEME.background },
 });
 
 export default StoichiometryScreen;

@@ -1,400 +1,388 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds, InterstitialAd, AdEventType } from 'react-native-google-mobile-ads';
+// MassMoleNumberScreen.js - Premium Atomic/Particle Purple Theme
+import React, { useEffect, useState, useMemo, useRef } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  Modal, Dimensions, Animated, Platform
+} from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BannerAd, BannerAdSize } from './components/AdMobWrapper';
+import MassMoleQuestionGenerator from './MassMoleQuestionGenerator';
+import { ShareManager } from './ShareManager';
+import { AdManager } from './AdManager';
+import { GamificationManager } from './GamificationManager';
 
-const adUnitId = __DEV__ ? TestIds.BANNER : 'ca-app-pub-8342678716913452/9214380156';
+const { width } = Dimensions.get('window');
 
-const MassMoleNumberScreen = () => {
+// Atomic Purple Theme
+const THEME = {
+  background: '#0D0A14',
+  card: '#15101F',
+  cardBorder: '#251E35',
+  accent: '#8B5CF6',
+  accentLight: '#A78BFA',
+  text: '#FFFFFF',
+};
+
+const MassMoleNumber = () => {
+  const [questions, setQuestions] = useState([]);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const [showSolution, setShowSolution] = useState(false);
+  const [filterType, setFilterType] = useState('All');
+  const [solutionsViewed, setSolutionsViewed] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const modalAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const generatedQuestions = MassMoleQuestionGenerator.generateQuestionSet(50);
+    setQuestions(generatedQuestions);
+
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+
+    // Pulse animation for atom
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.1, duration: 1500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const questionTypes = useMemo(() => {
+    const types = ['All', ...new Set(questions.map(q => q.type))];
+    return types;
+  }, [questions]);
+
+  const filteredQuestions = useMemo(() => {
+    if (filterType === 'All') return questions;
+    return questions.filter(q => q.type === filterType);
+  }, [questions, filterType]);
+
+  useEffect(() => {
+    if (selectedQuestion) {
+      Animated.spring(modalAnim, { toValue: 1, tension: 50, friction: 8, useNativeDriver: true }).start();
+    } else {
+      modalAnim.setValue(0);
+    }
+  }, [selectedQuestion]);
+
+  const getDifficultyStyle = (difficulty) => {
+    switch (difficulty) {
+      case 'Easy': return { bg: '#10B98120', color: '#10B981', icon: '⚛️' };
+      case 'Medium': return { bg: '#8B5CF620', color: '#8B5CF6', icon: '🔬' };
+      case 'Hard': return { bg: '#EF444420', color: '#EF4444', icon: '🧬' };
+      default: return { bg: '#88888820', color: '#888', icon: '⚛️' };
+    }
+  };
+
+  const openQuestion = (question) => {
+    setSelectedQuestion(question);
+    setShowSolution(false);
+  };
+
+  const closeModal = () => {
+    setSelectedQuestion(null);
+    setShowSolution(false);
+  };
+
+  const handleShowSolution = () => {
+    setShowSolution(!showSolution);
+
+    if (!showSolution) {
+      setSolutionsViewed(prev => {
+        const newCount = prev + 1;
+        if (AdManager.onCalculationComplete()) {
+          AdManager.showInterstitial();
+        }
+        GamificationManager.addXP(10);
+        GamificationManager.recordAction('SOLVE', 'MassMoleNumber');
+        return newCount;
+      });
+    }
+  };
 
   return (
-    <>
-    <ScrollView style={styles.container}>
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          Calculate the number of moles in 25 grams of water (H2O).
-        </Text>
-        <Text style={styles.infoText}>
-          To find the number of moles, we'll use the formula:
-        </Text>
-        <Text style={styles.formula}>
-          Number of moles = Molar mass / Given mass
-        </Text>
-        <Text style={styles.infoText}>
-          For water (H2O), the molar mass is approximately 18.015g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Number of moles = 25g / 18.015g/mol ≈ 1.39 moles
-        </Text>
-      </View>
+    <View style={styles.container}>
+      <LinearGradient colors={['#0D0A14', '#15101F', '#1D1630']} style={StyleSheet.absoluteFill} />
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          How many moles are there in 50 grams of calcium carbonate (CaCO3)?
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of calcium carbonate (CaCO3) is approximately 100.09g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Number of moles = 50g / 100.09g/mol ≈ 0.499 moles
-        </Text>
-      </View>
+      <Animated.ScrollView style={{ opacity: fadeAnim }} showsVerticalScrollIndicator={false}>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          Calculate the mass of 3 moles of sulfur dioxide (SO2).
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of sulfur dioxide (SO2) is approximately 64.06g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Mass = 3 moles * 64.06g/mol ≈ 192.18 grams
-        </Text>
-      </View>
+        {/* Header */}
+        <LinearGradient colors={['#8B5CF6', '#7C3AED', '#6D28D9']} style={styles.header}>
+          <View style={styles.headerContent}>
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <MaterialCommunityIcons name="atom-variant" size={44} color="#FFF" />
+            </Animated.View>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle}>Mass-Mole-Number</Text>
+              <Text style={styles.headerSubtitle}>Avogadro's conversions</Text>
+            </View>
+          </View>
 
-      {/* Add 7 more questions and their solutions below */}
-      {/* Question 4 */}
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          How many moles are there in 75 grams of methane (CH4)?
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of methane (CH4) is approximately 16.04g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Number of moles = 75g / 16.04g/mol ≈ 4.68 moles
-        </Text>
-      </View>
+          <View style={styles.statsRow}>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>{questions.length}</Text>
+              <Text style={styles.statLabel}>Problems</Text>
+            </View>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>{solutionsViewed}</Text>
+              <Text style={styles.statLabel}>Solved</Text>
+            </View>
+            <View style={styles.statPill}>
+              <Text style={styles.statValue}>+{solutionsViewed * 10}</Text>
+              <Text style={styles.statLabel}>XP</Text>
+            </View>
+          </View>
+        </LinearGradient>
 
-      {/* Question 5 */}
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          Calculate the mass of 2.5 moles of potassium permanganate (KMnO4).
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of potassium permanganate (KMnO4) is approximately 158.03g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Mass = 2.5 moles * 158.03g/mol ≈ 395.08 grams
-        </Text>
-      </View>
+        {/* Key Constants */}
+        <View style={styles.constantsBar}>
+          <View style={styles.constantItem}>
+            <Text style={styles.constantLabel}>Avogadro's Number</Text>
+            <Text style={styles.constantValue}>6.022 × 10²³</Text>
+          </View>
+          <View style={styles.constantDivider} />
+          <View style={styles.constantItem}>
+            <Text style={styles.constantLabel}>Molar Mass</Text>
+            <Text style={styles.constantValue}>g/mol</Text>
+          </View>
+        </View>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          Calculate the number of moles in 30 grams of carbon dioxide (CO2).
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of carbon dioxide (CO2) is approximately 44.01g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Number of moles = 30g / 44.01g/mol ≈ 0.681 moles
-        </Text>
-      </View>
+        {/* Filter */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          {questionTypes.map((type) => {
+            const count = type === 'All' ? questions.length : questions.filter(q => q.type === type).length;
+            const isActive = filterType === type;
+            return (
+              <TouchableOpacity
+                key={type}
+                style={[styles.filterChip, isActive && styles.filterChipActive]}
+                onPress={() => setFilterType(type)}
+              >
+                <Text style={[styles.filterText, isActive && styles.filterTextActive]}>{type} ({count})</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          How many grams are there in 2.5 moles of sodium chloride (NaCl)?
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of sodium chloride (NaCl) is approximately 58.44g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Mass = 2.5 moles * 58.44g/mol ≈ 146.10 grams
-        </Text>
-      </View>
+        {/* Questions */}
+        <View style={styles.questionsContainer}>
+          {filteredQuestions.map((question, index) => {
+            const diffStyle = getDifficultyStyle(question.difficulty);
+            return (
+              <TouchableOpacity
+                key={question.id}
+                style={styles.questionCard}
+                onPress={() => openQuestion(question)}
+                activeOpacity={0.85}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={[styles.iconBox, { backgroundColor: '#8B5CF620' }]}>
+                    <MaterialCommunityIcons name="atom" size={24} color="#8B5CF6" />
+                  </View>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardType}>{question.type}</Text>
+                    <View style={[styles.diffBadge, { backgroundColor: diffStyle.bg }]}>
+                      <Text style={[styles.diffText, { color: diffStyle.color }]}>{diffStyle.icon} {question.difficulty}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.cardNumber}>
+                    <Text style={styles.cardNumberText}>#{index + 1}</Text>
+                  </View>
+                </View>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          Calculate the number of moles in 15 grams of ammonia (NH3).
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of ammonia (NH3) is approximately 17.03g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Number of moles = 15g / 17.03g/mol ≈ 0.881 moles
-        </Text>
-      </View>
+                <Text style={styles.questionPreview} numberOfLines={3}>{question.question}</Text>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          How many grams are there in 3 moles of sulfuric acid (H2SO4)?
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of sulfuric acid (H2SO4) is approximately 98.08g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Mass = 3 moles * 98.08g/mol ≈ 294.24 grams
-        </Text>
-      </View>
+                <View style={styles.cardFooter}>
+                  <View style={styles.conceptHint}>
+                    <MaterialCommunityIcons name="lightbulb-outline" size={14} color="#8B5CF6" />
+                    <Text style={styles.conceptText} numberOfLines={1}>{question.concept}</Text>
+                  </View>
+                  <View style={styles.solveBtn}>
+                    <Text style={styles.solveBtnText}>Solve</Text>
+                    <MaterialCommunityIcons name="arrow-right" size={14} color="#8B5CF6" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-      <View style={styles.problemContainer}>
-        <Text style={styles.problemStatement}>
-          Calculate the mass of 1.5 moles of ethanol (C2H5OH).
-        </Text>
-        <Text style={styles.infoText}>
-          The molar mass of ethanol (C2H5OH) is approximately 46.07g/mol.
-        </Text>
-        <Text style={styles.result}>
-          Mass = 1.5 moles * 46.07g/mol ≈ 69.11 grams
-        </Text>
-      </View>
+        <View style={{ height: 100 }} />
+      </Animated.ScrollView>
 
-      <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Determine the number of moles in 125 grams of acetic acid (CH3COOH).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of acetic acid (CH3COOH) is approximately 60.05g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Number of moles = 125g / 60.05g/mol ≈ 2.082 moles
-    </Text>
-  </View>
+      {/* Solution Modal */}
+      <Modal visible={selectedQuestion !== null} animationType="slide" transparent onRequestClose={closeModal}>
+        <View style={styles.modalOverlay}>
+          <Animated.View style={[styles.modalContent, { transform: [{ translateY: modalAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] }) }] }]}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {selectedQuestion && (
+                <>
+                  <View style={styles.modalHeader}>
+                    <View style={styles.modalIcon}>
+                      <MaterialCommunityIcons name="atom" size={28} color="#8B5CF6" />
+                    </View>
+                    <View style={styles.modalHeaderText}>
+                      <Text style={styles.modalType}>{selectedQuestion.type}</Text>
+                      <View style={[styles.diffBadge, { backgroundColor: getDifficultyStyle(selectedQuestion.difficulty).bg }]}>
+                        <Text style={[styles.diffText, { color: getDifficultyStyle(selectedQuestion.difficulty).color }]}>{selectedQuestion.difficulty}</Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity style={styles.closeBtn} onPress={closeModal}>
+                      <MaterialCommunityIcons name="close" size={24} color="#888" />
+                    </TouchableOpacity>
+                  </View>
 
-  {/* Question 12 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Find the mass of 4 moles of magnesium nitrate [Mg(NO3)2].
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of magnesium nitrate [Mg(NO3)2] is approximately 148.32g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 4 moles * 148.32g/mol ≈ 593.28 grams
-    </Text>
-  </View>
+                  <View style={styles.problemBox}>
+                    <Text style={styles.sectionLabel}>Problem</Text>
+                    <Text style={styles.problemText}>{selectedQuestion.question}</Text>
+                  </View>
 
-  {/* Question 13 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Calculate the mass of 2.75 moles of copper(II) sulfate (CuSO4).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of copper(II) sulfate (CuSO4) is approximately 159.61g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 2.75 moles * 159.61g/mol ≈ 439.27 grams
-    </Text>
-  </View>
+                  {selectedQuestion.hint && (
+                    <View style={styles.hintBox}>
+                      <MaterialCommunityIcons name="lightbulb" size={18} color="#FBBF24" />
+                      <Text style={styles.hintText}>{selectedQuestion.hint}</Text>
+                    </View>
+                  )}
 
-  {/* Question 14 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      How many moles are present in 85 grams of aluminum chloride (AlCl3)?
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of aluminum chloride (AlCl3) is approximately 133.34g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Number of moles = 85g / 133.34g/mol ≈ 0.637 moles
-    </Text>
-  </View>
+                  <TouchableOpacity style={styles.solutionBtn} onPress={handleShowSolution}>
+                    <MaterialCommunityIcons name={showSolution ? 'eye-off' : 'eye'} size={20} color="#FFF" />
+                    <Text style={styles.solutionBtnText}>{showSolution ? 'Hide Solution' : 'Show Solution (+10 XP)'}</Text>
+                  </TouchableOpacity>
 
-  {/* Question 15 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Determine the mass of 3.5 moles of dinitrogen pentoxide (N2O5).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of dinitrogen pentoxide (N2O5) is approximately 108.01g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 3.5 moles * 108.01g/mol ≈ 378.03 grams
-    </Text>
-  </View>
+                  {showSolution && (
+                    <>
+                      <View style={styles.stepsBox}>
+                        <Text style={styles.sectionLabel}>Solution Steps</Text>
+                        {selectedQuestion.solution.map((step, idx) => (
+                          step.trim() !== '' && (
+                            <View key={idx} style={styles.stepRow}>
+                              <LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.stepNum}>
+                                <Text style={styles.stepNumText}>{idx + 1}</Text>
+                              </LinearGradient>
+                              <Text style={styles.stepText}>{step}</Text>
+                            </View>
+                          )
+                        ))}
+                      </View>
 
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Calculate the number of moles in 500 grams of silver nitrate (AgNO3).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of silver nitrate (AgNO3) is approximately 169.87g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Number of moles = 500g / 169.87g/mol ≈ 2.946 moles
-    </Text>
-  </View>
+                      <LinearGradient colors={['#10B981', '#059669']} style={styles.answerBox}>
+                        <Text style={styles.answerLabel}>Final Answer</Text>
+                        <Text style={styles.answerValue}>{selectedQuestion.answer}</Text>
+                      </LinearGradient>
 
-  {/* Question 17 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Determine the mass of 6 moles of hydrogen peroxide (H2O2).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of hydrogen peroxide (H2O2) is approximately 34.02g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 6 moles * 34.02g/mol ≈ 204.12 grams
-    </Text>
-  </View>
+                      <View style={styles.conceptBox}>
+                        <MaterialCommunityIcons name="school" size={20} color="#F59E0B" />
+                        <View style={styles.conceptContent}>
+                          <Text style={styles.conceptLabel}>Key Concept</Text>
+                          <Text style={styles.conceptDetail}>{selectedQuestion.concept}</Text>
+                        </View>
+                      </View>
 
-  {/* Question 18 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      How many grams are there in 2 moles of phosphorus pentachloride (PCl5)?
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of phosphorus pentachloride (PCl5) is approximately 208.24g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 2 moles * 208.24g/mol ≈ 416.48 grams
-    </Text>
-  </View>
+                      <TouchableOpacity style={styles.shareBtn} onPress={() => ShareManager.shareCalculation('Mass-Mole-Number', selectedQuestion.question, selectedQuestion.answer)}>
+                        <MaterialCommunityIcons name="share-variant" size={18} color="#3B82F6" />
+                        <Text style={styles.shareBtnText}>Share Solution</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </>
+              )}
+            </ScrollView>
+          </Animated.View>
+        </View>
+      </Modal>
 
-  {/* Question 19 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Calculate the mass of 4.5 moles of sodium carbonate (Na2CO3).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of sodium carbonate (Na2CO3) is approximately 105.99g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 4.5 moles * 105.99g/mol ≈ 477.46 grams
-    </Text>
-  </View>
-
-  {/* Question 20 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Determine the number of moles in 150 grams of barium sulfate (BaSO4).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of barium sulfate (BaSO4) is approximately 233.39g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Number of moles = 150g / 233.39g/mol ≈ 0.643 moles
-    </Text>
-  </View>
-
-  {/* Question 21 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      How many moles are present in 75 grams of potassium hydroxide (KOH)?
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of potassium hydroxide (KOH) is approximately 56.11g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Number of moles = 75g / 56.11g/mol ≈ 1.336 moles
-    </Text>
-  </View>
-
-  {/* Question 22 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Calculate the mass of 3.25 moles of nitric acid (HNO3).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of nitric acid (HNO3) is approximately 63.01g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 3.25 moles * 63.01g/mol ≈ 204.26 grams
-    </Text>
-  </View>
-
-  {/* Question 23 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Determine the number of moles in 100 grams of calcium hydroxide (Ca(OH)2).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of calcium hydroxide (Ca(OH)2) is approximately 74.09g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Number of moles = 100g / 74.09g/mol ≈ 1.349 moles
-    </Text>
-  </View>
-
-  {/* Question 24 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      Calculate the mass of 5.5 moles of diphosphorus pentoxide (P4O10).
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of diphosphorus pentoxide (P4O10) is approximately 283.89g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 5.5 moles * 283.89g/mol ≈ 1561.395 grams
-    </Text>
-  </View>
-
-  {/* Question 25 */}
-  <View style={styles.problemContainer}>
-    <Text style={styles.problemStatement}>
-      How many grams are there in 2.75 moles of sulfur hexafluoride (SF6)?
-    </Text>
-    <Text style={styles.infoText}>
-      The molar mass of sulfur hexafluoride (SF6) is approximately 146.06g/mol.
-    </Text>
-    <Text style={styles.result}>
-      Mass = 2.75 moles * 146.06g/mol ≈ 401.915 grams
-    </Text>
-  </View>
-
-
-      {/* Add more questions and solutions here */}
-    </ScrollView>
-    <View style={styles.adContainer}>
-        <BannerAd
-          unitId={adUnitId}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          requestOptions={{
-            requestNonPersonalizedAdsOnly: false,
-          }}
-        />
-      </View>
-   </>
+      {AdManager.shouldShowBanner('MassMoleNumber') && (
+        <View style={styles.adContainer}>
+          <BannerAd unitId={AdManager.getBannerUnitId('result')} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+        </View>
+      )}
+    </View>
   );
 };
 
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#F5F5F5', // Light Gray Background
-    marginBottom: 50,
-  },
-  adContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    alignItems: 'center',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#4E7ECE', // Blue Color
-  },
-  problemContainer: {
-    backgroundColor: '#FFFFFF', // White Background
-    borderRadius: 10,
-    padding: 16,
-    elevation: 3, // Add a slight shadow for depth
-    marginBottom: 20,
-  },
-  problemStatement: {
-    fontSize: 18,
-    marginBottom: 8,
-    color: '#FF6347', // Tomato Red
-  },
-  infoText: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  formula: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#32CD32', // Lime Green
-  },
-  result: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4E7ECE', // Blue Color
-  },
+  container: { flex: 1, backgroundColor: THEME.background },
+
+  header: { margin: 16, borderRadius: 20, padding: 20, paddingTop: Platform.OS === 'ios' ? 50 : 20 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  headerText: { marginLeft: 16 },
+  headerTitle: { color: '#FFF', fontSize: 24, fontWeight: '800' },
+  headerSubtitle: { color: '#FFFFFF80', fontSize: 14, marginTop: 4 },
+
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  statPill: { backgroundColor: '#FFFFFF20', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, alignItems: 'center' },
+  statValue: { color: '#FFF', fontSize: 18, fontWeight: '800' },
+  statLabel: { color: '#FFFFFF80', fontSize: 10, marginTop: 2 },
+
+  constantsBar: { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#8B5CF620', borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#8B5CF640' },
+  constantItem: { flex: 1, alignItems: 'center' },
+  constantLabel: { color: '#A78BFA', fontSize: 11, fontWeight: '600', marginBottom: 4 },
+  constantValue: { color: '#FFF', fontSize: 16, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+  constantDivider: { width: 1, height: 36, backgroundColor: '#8B5CF640' },
+
+  filterScroll: { paddingHorizontal: 16, paddingBottom: 16, gap: 10 },
+  filterChip: { backgroundColor: '#FFFFFF08', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, marginRight: 10 },
+  filterChipActive: { backgroundColor: '#8B5CF6' },
+  filterText: { color: '#888', fontSize: 13, fontWeight: '600' },
+  filterTextActive: { color: '#FFF' },
+
+  questionsContainer: { paddingHorizontal: 16 },
+  questionCard: { backgroundColor: THEME.card, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: THEME.cardBorder },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
+  iconBox: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  cardInfo: { flex: 1, marginLeft: 12 },
+  cardType: { color: '#FFF', fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  diffBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  diffText: { fontSize: 11, fontWeight: '700' },
+  cardNumber: { backgroundColor: '#FFFFFF10', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  cardNumberText: { color: '#8B5CF6', fontSize: 12, fontWeight: '700' },
+
+  questionPreview: { color: '#CCC', fontSize: 14, lineHeight: 20, marginBottom: 14 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#FFFFFF10' },
+  conceptHint: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 6 },
+  conceptText: { color: '#888', fontSize: 12, flex: 1 },
+  solveBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  solveBtnText: { color: '#8B5CF6', fontSize: 13, fontWeight: '700' },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: THEME.card, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '92%', padding: 20 },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  modalIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: '#8B5CF620', justifyContent: 'center', alignItems: 'center' },
+  modalHeaderText: { flex: 1, marginLeft: 14 },
+  modalType: { color: '#FFF', fontSize: 20, fontWeight: '700', marginBottom: 4 },
+  closeBtn: { padding: 8 },
+
+  problemBox: { backgroundColor: '#FFFFFF08', borderRadius: 14, padding: 16, marginBottom: 16 },
+  sectionLabel: { color: '#888', fontSize: 12, fontWeight: '600', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1 },
+  problemText: { color: '#FFF', fontSize: 16, lineHeight: 24 },
+
+  hintBox: { flexDirection: 'row', backgroundColor: '#FBBF2420', borderRadius: 12, padding: 14, marginBottom: 16, gap: 12, alignItems: 'flex-start' },
+  hintText: { flex: 1, color: '#FBBF24', fontSize: 14, lineHeight: 20 },
+
+  solutionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#8B5CF6', padding: 16, borderRadius: 14, gap: 10, marginBottom: 16 },
+  solutionBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+
+  stepsBox: { backgroundColor: '#FFFFFF08', borderRadius: 14, padding: 16, marginBottom: 16 },
+  stepRow: { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-start' },
+  stepNum: { width: 26, height: 26, borderRadius: 13, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  stepNumText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  stepText: { flex: 1, color: '#CCC', fontSize: 14, lineHeight: 22 },
+
+  answerBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, borderRadius: 14, marginBottom: 16 },
+  answerLabel: { color: '#FFFFFF80', fontSize: 12, fontWeight: '600' },
+  answerValue: { color: '#FFF', fontSize: 20, fontWeight: '800' },
+
+  conceptBox: { flexDirection: 'row', backgroundColor: '#F59E0B20', borderRadius: 14, padding: 16, marginBottom: 16, gap: 12 },
+  conceptContent: { flex: 1 },
+  conceptLabel: { color: '#F59E0B', fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  conceptDetail: { color: '#DDD', fontSize: 14, lineHeight: 20, fontStyle: 'italic' },
+
+  shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3B82F620', padding: 14, borderRadius: 12, gap: 10 },
+  shareBtnText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
+
+  adContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: THEME.background },
 });
 
-export default MassMoleNumberScreen;
+export default MassMoleNumber;
