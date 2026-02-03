@@ -1,0 +1,14 @@
+# v2.1.0 Release Notes
+
+**New Features:**
+• 🎮 **Gamification System**: Earn XP, level up, and become a Chemistry Master!
+• 🔥 **Daily Streaks**: Build learning habits with daily missions.
+• 🎁 **Rewarded Ads**: Watch ads to unlock bonus XP and features.
+• ✨ **Visual Overhaul**: Premium dark mode and smoother animations.
+
+**Improvements:**
+• ⚡ **Optimized Performance**: Reduced APK size and faster load times.
+• 🧪 **Enhanced Calculators**: Better step-by-step solutions for Stoichiometry & pH.
+• 🐛 **Bug Fixes**: Resolved equation balancer errors and visual glitches.
+
+Thank you for learning with Chemistry Calc! 🚀

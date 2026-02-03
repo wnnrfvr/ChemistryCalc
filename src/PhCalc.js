@@ -141,9 +141,9 @@ const PhCalcScreen = () => {
             end={{ x: 1, y: 0 }}
             style={styles.phScale}
           >
-            <Text style={styles.phScaleText}>0 ← ACIDIC</Text>
+            <Text style={styles.phScaleText}>0 {'<-'} ACIDIC</Text>
             <Text style={styles.phScaleText}>7</Text>
-            <Text style={styles.phScaleText}>BASIC → 14</Text>
+            <Text style={styles.phScaleText}>BASIC {'->'} 14</Text>
           </LinearGradient>
         </View>
 

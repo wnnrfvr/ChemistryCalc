@@ -98,25 +98,7 @@ const SettingsScreen = ({ navigation }) => {
         );
     };
 
-    const handleTestInterstitial = () => {
-        Alert.alert(
-            '🧪 Test Interstitial Ad',
-            'This will show an interstitial ad for testing purposes.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Show Ad',
-                    onPress: async () => {
-                        // Force show by resetting state temporarily
-                        const shown = await AdManager.showInterstitial();
-                        if (!shown) {
-                            Alert.alert('Ad Not Available', 'Interstitial is not loaded yet or cooldown is active.');
-                        }
-                    }
-                }
-            ]
-        );
-    };
+
 
     const handleResetProgress = () => {
         Alert.alert(
@@ -274,21 +256,7 @@ const SettingsScreen = ({ navigation }) => {
                     />
                 </View>
 
-                {/* Developer Tools */}
-                {__DEV__ && (
-                    <>
-                        <Text style={styles.sectionTitle}>🧪 Developer Tools</Text>
-                        <View style={styles.section}>
-                            <SettingItem
-                                icon="advertisements"
-                                title="Test Interstitial"
-                                subtitle="Manually trigger interstitial ad"
-                                onPress={handleTestInterstitial}
-                                color="#EF4444"
-                            />
-                        </View>
-                    </>
-                )}
+
 
                 {/* Danger Zone */}
                 <Text style={styles.sectionTitle}>Data</Text>

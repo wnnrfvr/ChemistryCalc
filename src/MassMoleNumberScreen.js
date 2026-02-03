@@ -36,7 +36,25 @@ const MassMoleNumber = () => {
 
   useEffect(() => {
     const generatedQuestions = MassMoleQuestionGenerator.generateQuestionSet(50);
-    setQuestions(generatedQuestions);
+    const normalizedQuestions = generatedQuestions.map(q => {
+      const solutionArray = Array.isArray(q.solution)
+        ? q.solution
+        : (q.solution ? q.solution.split('\n').filter(s => s.trim() !== '') : []);
+
+      let finalAnswer = q.answer;
+      if (!finalAnswer && q.options && q.correctOptionId) {
+        const correctOpt = q.options.find(o => o.id === q.correctOptionId);
+        if (correctOpt) finalAnswer = correctOpt.text;
+      }
+
+      return {
+        ...q,
+        solution: solutionArray,
+        answer: finalAnswer,
+        concept: q.concept || q.topic || 'Conversions'
+      };
+    });
+    setQuestions(normalizedQuestions);
 
     Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
 

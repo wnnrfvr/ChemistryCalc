@@ -1,599 +1,362 @@
-// QuestionGenerator.js - Modular Question Generation Engine for Thermochemistry
+// QuestionGenerator.js - High-Stakes Exam Engine (MCAT, Gaokao, JAMB, AP, CSAT)
+import { MANUAL_QUESTIONS } from './ManualQuestions';
 
 const QuestionGenerator = {
-    // Utility Functions
-    random: (arr) => arr[Math.floor(Math.random() * arr.length)],
-    
-    randomNum: (min, max, decimals = 0) => {
-      const num = Math.random() * (max - min) + min;
-      return decimals > 0 ? parseFloat(num.toFixed(decimals)) : Math.floor(num);
-    },
-  
-    // Constants
-    R_GAS_CONSTANT: 8.314, // J/(mol·K)
-    ATM_TO_J: 101.325, // J/L·atm
-    
-    // Data Banks
-    reactions: {
-      combustion: [
-        { reactants: 'CH₄(g) + 2O₂(g)', products: 'CO₂(g) + 2H₂O(g)', name: 'methane combustion' },
-        { reactants: 'C₂H₆(g) + 3.5O₂(g)', products: '2CO₂(g) + 3H₂O(g)', name: 'ethane combustion' },
-        { reactants: 'C₃H₈(g) + 5O₂(g)', products: '3CO₂(g) + 4H₂O(g)', name: 'propane combustion' },
-        { reactants: 'C₂H₅OH(l) + 3O₂(g)', products: '2CO₂(g) + 3H₂O(l)', name: 'ethanol combustion' }
+  // Utility Functions
+  random: (arr) => arr[Math.floor(Math.random() * arr.length)],
+
+  randomNum: (min, max, decimals = 0) => {
+    const num = Math.random() * (max - min) + min;
+    return decimals > 0 ? parseFloat(num.toFixed(decimals)) : Math.floor(num);
+  },
+
+  // Constants
+  CONSTANTS: {
+    R: 8.314, // J/(mol·K)
+    F: 96485, // C/mol
+    Na: 6.022e23, // avg number
+    h: 6.626e-34, // Js
+    c: 3.0e8, // m/s
+    kw: 1.0e-14
+  },
+
+  // =========================================================================
+  // MCAT (Medical College Admission Test) - Critical Reasoning & Biochem focus
+  // =========================================================================
+  generateMCAT() {
+    // Topic: Enzymatic Kinetics (Michaelis-Menten)
+    const km = this.randomNum(1, 10, 1); // mM
+    const vmax = this.randomNum(50, 200); // µmol/min
+    const s = this.randomNum(2, 20); // mM
+
+    const v = (vmax * s) / (km + s);
+
+    // Distractors
+    const d1 = (vmax * s) / (km - s); // Wrong formula sign
+    const d2 = (vmax * km) / (s + km); // Swapped variables
+    const d3 = vmax / 2; // Assuming Vmax/2 logic incorrectly
+
+    return {
+      id: `mcat_${Date.now()}_${Math.random()}`,
+      examType: "MCAT",
+      topic: "Biochemistry / Kinetics",
+      difficulty: "Hard",
+      type: "Critical Reasoning",
+      icon: "🧬",
+      question: `An enzyme follows Michaelis-Menten kinetics with a Km of ${km} mM and a Vmax of ${vmax} µmol/min.\n\nAt a substrate concentration of ${s} mM, what is the initial reaction velocity (V₀)?`,
+      options: [
+        { id: "A", text: `${v.toFixed(1)} µmol/min` },
+        { id: "B", text: `${d1.toFixed(1)} µmol/min` },
+        { id: "C", text: `${d2.toFixed(1)} µmol/min` },
+        { id: "D", text: `${d3.toFixed(1)} µmol/min` }
       ],
-      synthesis: [
-        { reactants: 'H₂(g) + ½O₂(g)', products: 'H₂O(g)', name: 'water formation' },
-        { reactants: 'N₂(g) + 3H₂(g)', products: '2NH₃(g)', name: 'ammonia synthesis' },
-        { reactants: 'N₂(g) + O₂(g)', products: '2NO(g)', name: 'nitrogen oxide formation' },
-        { reactants: '2SO₂(g) + O₂(g)', products: '2SO₃(g)', name: 'sulfur trioxide formation' },
-        { reactants: 'CO(g) + 2H₂(g)', products: 'CH₃OH(g)', name: 'methanol synthesis' }
-      ],
-      equilibrium: [
-        { eq: 'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)', name: 'Haber process' },
-        { eq: 'H₂(g) + I₂(g) ⇌ 2HI(g)', name: 'hydrogen iodide equilibrium' },
-        { eq: 'CO(g) + 3H₂(g) ⇌ CH₄(g) + H₂O(g)', name: 'methanation reaction' },
-        { eq: 'PCl₅(g) ⇌ PCl₃(g) + Cl₂(g)', name: 'phosphorus pentachloride decomposition' },
-        { eq: '2NO₂(g) ⇌ N₂O₄(g)', name: 'nitrogen dioxide dimerization' }
+      answer: `${v.toFixed(1)} µmol/min`,
+      correctOptionId: "A",
+      solution: [
+        "1. Recall the Michaelis-Menten equation: V₀ = (Vmax · [S]) / (Km + [S])",
+        `2. Substitute values: V₀ = (${vmax} · ${s}) / (${km} + ${s})`,
+        `3. Calculate numerator: ${vmax * s}`,
+        `4. Calculate denominator: ${km + s}`,
+        `5. Divide: ${(vmax * s)} / ${(km + s)} ≈ ${v.toFixed(1)} µmol/min`,
+        "Key Concept: At high [S] >> Km, V₀ approaches Vmax, but here [S] is comparable to Km."
       ]
-    },
-    
-    materials: {
-      metals: [
-        { name: 'aluminum', c: 0.897 },
-        { name: 'copper', c: 0.385 },
-        { name: 'iron', c: 0.449 },
-        { name: 'silver', c: 0.235 },
-        { name: 'brass', c: 0.380 },
-        { name: 'zinc', c: 0.388 },
-        { name: 'lead', c: 0.128 },
-        { name: 'nickel', c: 0.444 }
+    };
+  },
+
+  // =========================================================================
+  // Gaokao (China) - Complex Calculation & Synthesis
+  // =========================================================================
+  generateGaokao() {
+    // Topic: Solubility Product (Ksp) & Common Ion Effect
+    const ksp = 1.8e-10;
+    const naclConc = this.randomNum(0.01, 0.1, 2); // M
+
+    // s (solubility) approx Ksp / [Cl-] because s is small
+    const s = ksp / naclConc;
+
+    // Distractors
+    const d1 = Math.sqrt(ksp);
+    const d2 = ksp * naclConc;
+    const d3 = naclConc / ksp;
+
+    return {
+      id: `gk_${Date.now()}_${Math.random()}`,
+      examType: "Gaokao",
+      topic: "Chemical Equilibrium",
+      difficulty: "Hard",
+      type: "Calculation",
+      icon: "🐉",
+      question: `At 25°C, the Ksp of AgCl is 1.8 × 10⁻¹⁰. Calculate the solubility (mol/L) of AgCl in a ${naclConc} M NaCl solution.\n(Assume volume change is negligible and complete dissociation of NaCl).`,
+      options: [
+        { id: "A", text: `${s.toExponential(1)} mol/L` },
+        { id: "B", text: `${d1.toExponential(1)} mol/L` },
+        { id: "C", text: `${d2.toExponential(1)} mol/L` },
+        { id: "D", text: "1.3 × 10⁻⁵ mol/L" }
       ],
-      liquids: [
-        { name: 'water', c: 4.18 },
-        { name: 'ethanol', c: 2.44 },
-        { name: 'oil', c: 2.1 },
-        { name: 'glycerin', c: 2.43 },
-        { name: 'acetone', c: 2.15 },
-        { name: 'benzene', c: 1.74 }
+      answer: `${s.toExponential(1)} mol/L`,
+      correctOptionId: "A",
+      solution: [
+        "1. Write dissolution equilibrium: AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq)",
+        "2. Identify Common Ion source: NaCl -> Na⁺ + Cl⁻. [Cl⁻]initial = " + naclConc + " M",
+        "3. Set up Ksp expression: Ksp = [Ag⁺][Cl⁻]",
+        "4. Let s be solubility of AgCl. [Ag⁺] = s, [Cl⁻] = " + naclConc + " + s",
+        `5. Since Ksp is very small, assume s << ${naclConc}, so [Cl⁻] ≈ ${naclConc}`,
+        `6. 1.8e-10 = (s)(${naclConc})`,
+        `7. s = 1.8e-10 / ${naclConc} = ${s.toExponential(1)} M`,
+        "This demonstrates the drastic reduction in solubility due to the Common Ion Effect."
       ]
-    },
-  
-    // Question Type 1: Internal Energy Change (ΔU)
-    generateInternalEnergy() {
-      const allReactions = [...this.reactions.combustion, ...this.reactions.synthesis];
-      const reaction = this.random(allReactions);
-      const deltaH = -this.randomNum(150, 500, 1);
-      const temp = this.randomNum(273, 400);
-      const deltaS = -this.randomNum(10, 40, 1);
-      
-      const deltaU = (deltaH - (temp * deltaS / 1000)).toFixed(1);
-      
-      return {
-        id: `iu_${Date.now()}_${Math.random()}`,
-        type: 'Internal Energy',
-        icon: '⚡',
-        difficulty: 'Medium',
-        color: '#8B5CF6',
-        question: `Calculate the change in internal energy for the ${reaction.name}:\n\n${reaction.reactants} → ${reaction.products}\n\nΔH = ${deltaH} kJ/mol at ${temp} K\n(Assume ΔS = ${deltaS} J/mol·K)`,
-        solution: [
-          'Apply the First Law of Thermodynamics:',
-          'ΔU = ΔH - TΔS (for processes involving gases)',
-          `ΔU = ${deltaH} kJ/mol - (${temp} K)(${deltaS} J/mol·K × 10⁻³ kJ/J)`,
-          `ΔU = ${deltaH} - ${(temp * deltaS / 1000).toFixed(1)} kJ/mol`,
-          `ΔU = ${deltaU} kJ/mol`
-        ],
-        answer: `${deltaU} kJ/mol`,
-        concept: 'First Law of Thermodynamics',
-        hint: 'Remember to convert entropy units from J to kJ'
-      };
-    },
-  
-    // Question Type 2: Work Done by Gas (Isothermal)
-    generateWorkDone() {
-      const n = this.randomNum(1, 5);
-      const Vi = this.randomNum(1, 10);
-      const Vf = this.randomNum(Vi + 2, Vi + 15);
-      const T = this.randomNum(273, 400);
-      
-      const work = -(n * this.R_GAS_CONSTANT * T * Math.log(Vf / Vi));
-      
-      return {
-        id: `wd_${Date.now()}_${Math.random()}`,
-        type: 'Work & Energy',
-        icon: '📊',
-        difficulty: 'Medium',
-        color: '#10B981',
-        question: `Calculate the work done when ${n} mole${n > 1 ? 's' : ''} of an ideal gas expands isothermally and reversibly from ${Vi} L to ${Vf} L at ${T} K.`,
-        solution: [
-          'For isothermal reversible expansion:',
-          'w = -nRT ln(Vf/Vi)',
-          `w = -(${n} mol)(${this.R_GAS_CONSTANT} J/mol·K)(${T} K) ln(${Vf}/${Vi})`,
-          `w = -(${n})(${this.R_GAS_CONSTANT})(${T})(${Math.log(Vf / Vi).toFixed(4)})`,
-          `w = ${work.toFixed(0)} J`,
-          'Negative work indicates the system does work on surroundings'
-        ],
-        answer: `${work.toFixed(0)} J`,
-        concept: 'Reversible Isothermal Expansion',
-        hint: 'In isothermal processes, ΔU = 0, so q = -w'
-      };
-    },
-  
-    // Question Type 3: Work Against Constant Pressure
-    generateWorkConstantPressure() {
-      const P = this.randomNum(1, 5, 1);
-      const Vi = this.randomNum(2, 10);
-      const Vf = this.randomNum(Vi + 3, Vi + 15);
-      
-      const work = -(P * this.ATM_TO_J * (Vf - Vi));
-      
-      return {
-        id: `wcp_${Date.now()}_${Math.random()}`,
-        type: 'Work & Energy',
-        icon: '🔧',
-        difficulty: 'Easy',
-        color: '#10B981',
-        question: `A gas expands against a constant external pressure of ${P} atm from ${Vi} L to ${Vf} L. Calculate the work done by the gas.`,
-        solution: [
-          'For expansion against constant pressure:',
-          'w = -Pext × ΔV',
-          `w = -(${P} atm)(${this.ATM_TO_J} J/L·atm)(${Vf} - ${Vi}) L`,
-          `w = -(${P})(${this.ATM_TO_J})(${Vf - Vi})`,
-          `w = ${work.toFixed(0)} J`
-        ],
-        answer: `${work.toFixed(0)} J`,
-        concept: 'Isobaric Process',
-        hint: 'Work is negative when the system expands'
-      };
-    },
-  
-    // Question Type 4: Gibbs Free Energy
-    generateGibbsEnergy() {
-      const allReactions = [...this.reactions.combustion, ...this.reactions.synthesis];
-      const reaction = this.random(allReactions);
-      const deltaH = this.randomNum(-300, 250, 1);
-      const deltaS = this.randomNum(-200, 200, 1);
-      const T = this.randomNum(273, 450);
-      
-      const deltaG = (deltaH - (T * deltaS / 1000)).toFixed(1);
-      const spontaneous = parseFloat(deltaG) < 0 ? 'spontaneous' : 'non-spontaneous';
-      
-      return {
-        id: `ge_${Date.now()}_${Math.random()}`,
-        type: 'Gibbs Energy',
-        icon: '🔥',
-        difficulty: 'Medium',
-        color: '#EF4444',
-        question: `Calculate ΔG° for the ${reaction.name} at ${T} K:\n\n${reaction.reactants} → ${reaction.products}\n\nGiven: ΔH° = ${deltaH} kJ/mol, ΔS° = ${deltaS} J/mol·K`,
-        solution: [
-          'Apply the Gibbs-Helmholtz equation:',
-          'ΔG° = ΔH° - TΔS°',
-          `ΔG° = ${deltaH} kJ/mol - (${T} K)(${deltaS} J/mol·K × 10⁻³ kJ/J)`,
-          `ΔG° = ${deltaH} - ${(T * deltaS / 1000).toFixed(1)} kJ/mol`,
-          `ΔG° = ${deltaG} kJ/mol`,
-          '',
-          `Since ΔG° ${parseFloat(deltaG) < 0 ? '<' : '>'} 0, the reaction is ${spontaneous} under standard conditions at ${T} K.`
-        ],
-        answer: `${deltaG} kJ/mol (${spontaneous})`,
-        concept: 'Gibbs Free Energy & Spontaneity',
-        hint: 'ΔG < 0 means spontaneous, ΔG > 0 means non-spontaneous'
-      };
-    },
-  
-    // Question Type 5: Heat Transfer & Calorimetry
-    generateHeatTransfer() {
-      const metal = this.random(this.materials.metals);
-      const liquid = this.random(this.materials.liquids);
-      
-      const m1 = this.randomNum(50, 250);
-      const T1 = this.randomNum(70, 120);
-      const m2 = this.randomNum(100, 400);
-      const T2 = this.randomNum(10, 35);
-      
-      const Tf = ((m1 * metal.c * T1 + m2 * liquid.c * T2) / (m1 * metal.c + m2 * liquid.c)).toFixed(1);
-      
-      return {
-        id: `ht_${Date.now()}_${Math.random()}`,
-        type: 'Calorimetry',
-        icon: '💧',
-        difficulty: 'Easy',
-        color: '#3B82F6',
-        question: `${m1} g of ${metal.name} at ${T1}°C is placed in ${m2} g of ${liquid.name} at ${T2}°C. Calculate the final equilibrium temperature.\n\n(Specific heats: c_${metal.name} = ${metal.c} J/g°C, c_${liquid.name} = ${liquid.c} J/g°C)`,
-        solution: [
-          'At thermal equilibrium: Q_lost = Q_gained',
-          'Q_metal + Q_liquid = 0',
-          'm₁c₁(Tf - T₁) + m₂c₂(Tf - T₂) = 0',
-          '',
-          'Solving for Tf:',
-          `Tf = (m₁c₁T₁ + m₂c₂T₂) / (m₁c₁ + m₂c₂)`,
-          `Tf = [(${m1})(${metal.c})(${T1}) + (${m2})(${liquid.c})(${T2})] / [(${m1})(${metal.c}) + (${m2})(${liquid.c})]`,
-          `Tf = ${Tf}°C`
-        ],
-        answer: `${Tf}°C`,
-        concept: 'Conservation of Energy & Thermal Equilibrium',
-        hint: 'Heat lost by hot object equals heat gained by cold object'
-      };
-    },
-  
-    // Question Type 6: Entropy Change
-    generateEntropy() {
-      const n = this.randomNum(1, 4);
-      const Vi = this.randomNum(5, 20);
-      const Vf = this.randomNum(Vi + 5, Vi + 30);
-      const T = this.randomNum(273, 400);
-      
-      const deltaS = (n * this.R_GAS_CONSTANT * Math.log(Vf / Vi)).toFixed(2);
-      
-      return {
-        id: `ent_${Date.now()}_${Math.random()}`,
-        type: 'Entropy',
-        icon: '🌀',
-        difficulty: 'Medium',
-        color: '#8B5CF6',
-        question: `Calculate the entropy change when ${n} mole${n > 1 ? 's' : ''} of an ideal gas expands isothermally and reversibly from ${Vi} L to ${Vf} L at ${T} K.`,
-        solution: [
-          'For isothermal reversible expansion of ideal gas:',
-          'ΔS = nR ln(Vf/Vi)',
-          `ΔS = (${n} mol)(${this.R_GAS_CONSTANT} J/mol·K) ln(${Vf}/${Vi})`,
-          `ΔS = (${n})(${this.R_GAS_CONSTANT})(${Math.log(Vf / Vi).toFixed(4)})`,
-          `ΔS = ${deltaS} J/K`,
-          '',
-          'The positive entropy change indicates increased molecular disorder.'
-        ],
-        answer: `${deltaS} J/K`,
-        concept: 'Second Law of Thermodynamics',
-        hint: 'Entropy increases when gas expands into larger volume'
-      };
-    },
-  
-    // Question Type 7: Equilibrium Constant from ΔG
-    generateEquilibrium() {
-      const reaction = this.random(this.reactions.equilibrium);
-      const deltaG = this.randomNum(-60, 60, 1);
-      const T = this.randomNum(273, 450);
-      
-      const K = Math.exp(-deltaG * 1000 / (this.R_GAS_CONSTANT * T));
-      const Kformatted = K >= 1000 || K <= 0.001 ? K.toExponential(2) : K.toFixed(3);
-      
-      return {
-        id: `eq_${Date.now()}_${Math.random()}`,
-        type: 'Equilibrium',
-        icon: '⚖️',
-        difficulty: 'Hard',
-        color: '#F59E0B',
-        question: `Calculate the equilibrium constant K for the ${reaction.name} at ${T} K:\n\n${reaction.eq}\n\nGiven: ΔG° = ${deltaG} kJ/mol`,
-        solution: [
-          'Relationship between ΔG° and K:',
-          'ΔG° = -RT ln(K)',
-          'Rearranging: K = e^(-ΔG°/RT)',
-          '',
-          `K = exp[-(${deltaG} × 1000 J/mol) / (${this.R_GAS_CONSTANT} J/mol·K × ${T} K)]`,
-          `K = exp(${(-deltaG * 1000 / (this.R_GAS_CONSTANT * T)).toFixed(2)})`,
-          `K = ${Kformatted}`,
-          '',
-          K > 1 ? 'K > 1: Products are favored at equilibrium' : 'K < 1: Reactants are favored at equilibrium'
-        ],
-        answer: `K = ${Kformatted}`,
-        concept: 'Chemical Equilibrium & Thermodynamics',
-        hint: 'Negative ΔG° gives K > 1 (product-favored)'
-      };
-    },
-  
-    // Question Type 8: Heat of Vaporization
-    generateHeatVaporization() {
-      const substances = [
-        { name: 'water', bp: 100, ΔHvap: 40.7 },
-        { name: 'ethanol', bp: 78, ΔHvap: 38.6 },
-        { name: 'methanol', bp: 65, ΔHvap: 35.2 },
-        { name: 'acetone', bp: 56, ΔHvap: 29.1 }
-      ];
-      
-      const substance = this.random(substances);
-      const mass = this.randomNum(50, 200);
-      const molarMass = substance.name === 'water' ? 18 : 
-                        substance.name === 'ethanol' ? 46 : 
-                        substance.name === 'methanol' ? 32 : 58;
-      
-      const moles = (mass / molarMass).toFixed(2);
-      const heat = (moles * substance.ΔHvap).toFixed(1);
-      
-      return {
-        id: `hv_${Date.now()}_${Math.random()}`,
-        type: 'Phase Changes',
-        icon: '☁️',
-        difficulty: 'Medium',
-        color: '#06B6D4',
-        question: `Calculate the heat required to vaporize ${mass} g of ${substance.name} at its boiling point (${substance.bp}°C).\n\n(ΔHvap = ${substance.ΔHvap} kJ/mol, Molar mass = ${molarMass} g/mol)`,
-        solution: [
-          'Heat required for phase change:',
-          'q = n × ΔHvap',
-          '',
-          'First, calculate moles:',
-          `n = ${mass} g / ${molarMass} g/mol = ${moles} mol`,
-          '',
-          'Then calculate heat:',
-          `q = (${moles} mol)(${substance.ΔHvap} kJ/mol)`,
-          `q = ${heat} kJ`
-        ],
-        answer: `${heat} kJ`,
-        concept: 'Enthalpy of Phase Transitions',
-        hint: 'Temperature remains constant during phase change'
-      };
-    },
-  
-    // Question Type 9: Heat of Fusion
-    generateHeatFusion() {
-      const substance = this.random([
-        { name: 'ice', mp: 0, ΔHfus: 6.01, molarMass: 18 },
-        { name: 'iron', mp: 1538, ΔHfus: 13.8, molarMass: 56 },
-        { name: 'aluminum', mp: 660, ΔHfus: 10.7, molarMass: 27 }
-      ]);
-      
-      const mass = this.randomNum(100, 500);
-      const moles = (mass / substance.molarMass).toFixed(2);
-      const heat = (moles * substance.ΔHfus).toFixed(1);
-      
-      return {
-        id: `hf_${Date.now()}_${Math.random()}`,
-        type: 'Phase Changes',
-        icon: '🧊',
-        difficulty: 'Easy',
-        color: '#06B6D4',
-        question: `Calculate the heat required to melt ${mass} g of ${substance.name} at ${substance.mp}°C.\n\n(ΔHfus = ${substance.ΔHfus} kJ/mol, Molar mass = ${substance.molarMass} g/mol)`,
-        solution: [
-          'Heat required for melting:',
-          'q = n × ΔHfus',
-          '',
-          `n = ${mass} g / ${substance.molarMass} g/mol = ${moles} mol`,
-          `q = (${moles} mol)(${substance.ΔHfus} kJ/mol)`,
-          `q = ${heat} kJ`
-        ],
-        answer: `${heat} kJ`,
-        concept: 'Heat of Fusion',
-        hint: 'Fusion = melting (solid → liquid)'
-      };
-    },
-  
-    // Question Type 10: Hess's Law
-    generateHessLaw() {
-      const reactions = [
-        {
-          target: 'C(s) + O₂(g) → CO₂(g)',
-          given: [
-            { eq: 'C(s) + ½O₂(g) → CO(g)', ΔH: -110.5 },
-            { eq: 'CO(g) + ½O₂(g) → CO₂(g)', ΔH: -283.0 }
-          ],
-          answer: -393.5
-        },
-        {
-          target: '2C(s) + 2H₂(g) → C₂H₄(g)',
-          given: [
-            { eq: 'C₂H₄(g) + 3O₂(g) → 2CO₂(g) + 2H₂O(l)', ΔH: -1411 },
-            { eq: 'C(s) + O₂(g) → CO₂(g)', ΔH: -393.5 },
-            { eq: 'H₂(g) + ½O₂(g) → H₂O(l)', ΔH: -285.8 }
-          ],
-          answer: 52.3
-        }
-      ];
-      
-      const problem = this.random(reactions);
-      
-      return {
-        id: `hl_${Date.now()}_${Math.random()}`,
-        type: 'Hess\'s Law',
-        icon: '📐',
-        difficulty: 'Hard',
-        color: '#EC4899',
-        question: `Use Hess's Law to calculate ΔH for the reaction:\n\n${problem.target}\n\nGiven:\n${problem.given.map(r => `${r.eq}  ΔH = ${r.ΔH} kJ`).join('\n')}`,
-        solution: [
-          'Apply Hess\'s Law: ΔH is independent of pathway',
-          'Manipulate given equations to match target reaction',
-          '',
-          ...problem.given.map((r, i) => `(${i + 1}) ${r.eq}  ΔH = ${r.ΔH} kJ`),
-          '',
-          'After manipulation and addition:',
-          `ΔH = ${problem.answer} kJ`
-        ],
-        answer: `${problem.answer} kJ`,
-        concept: 'Hess\'s Law of Heat Summation',
-        hint: 'Reverse equations and multiply as needed to match target'
-      };
-    },
-  
-    // Question Type 11: Standard Enthalpy of Formation
-    generateEnthalpyFormation() {
-      const reactions = [
-        { compound: 'NH₃(g)', elements: '½N₂(g) + (3/2)H₂(g)', ΔHf: -46.1 },
-        { compound: 'CH₄(g)', elements: 'C(s) + 2H₂(g)', ΔHf: -74.8 },
-        { compound: 'C₂H₅OH(l)', elements: '2C(s) + 3H₂(g) + ½O₂(g)', ΔHf: -277.7 },
-        { compound: 'H₂O(l)', elements: 'H₂(g) + ½O₂(g)', ΔHf: -285.8 }
-      ];
-      
-      const rxn = this.random(reactions);
-      
-      return {
-        id: `ef_${Date.now()}_${Math.random()}`,
-        type: 'Enthalpy Formation',
-        icon: '⚗️',
-        difficulty: 'Easy',
-        color: '#8B5CF6',
-        question: `The standard enthalpy of formation (ΔH°f) is defined as the enthalpy change when 1 mole of a compound is formed from its elements in their standard states.\n\nWhat is ΔH°f for the formation of ${rxn.compound} from:\n\n${rxn.elements} → ${rxn.compound}`,
-        solution: [
-          'Standard enthalpy of formation:',
-          `${rxn.elements} → ${rxn.compound}`,
-          '',
-          `ΔH°f = ${rxn.ΔHf} kJ/mol`,
-          '',
-          'Note: Elements in standard states have ΔH°f = 0'
-        ],
-        answer: `${rxn.ΔHf} kJ/mol`,
-        concept: 'Standard Enthalpy of Formation',
-        hint: 'ΔH°f values are tabulated reference data'
-      };
-    },
-  
-    // Question Type 12: Temperature Change with Heat Addition
-    generateTemperatureChange() {
-      const liquid = this.random(this.materials.liquids);
-      const mass = this.randomNum(100, 500);
-      const Ti = this.randomNum(15, 30);
-      const heat = this.randomNum(5000, 20000);
-      
-      const ΔT = (heat / (mass * liquid.c)).toFixed(1);
-      const Tf = (parseFloat(Ti) + parseFloat(ΔT)).toFixed(1);
-      
-      return {
-        id: `tc_${Date.now()}_${Math.random()}`,
-        type: 'Calorimetry',
-        icon: '🌡️',
-        difficulty: 'Easy',
-        color: '#3B82F6',
-        question: `${mass} g of ${liquid.name} at ${Ti}°C absorbs ${heat} J of heat. Calculate the final temperature.\n\n(c = ${liquid.c} J/g°C)`,
-        solution: [
-          'Use the heat equation:',
-          'q = mcΔT',
-          '',
-          'Solve for ΔT:',
-          `ΔT = q / (mc) = ${heat} J / [(${mass} g)(${liquid.c} J/g°C)]`,
-          `ΔT = ${ΔT}°C`,
-          '',
-          `Final temperature: Tf = Ti + ΔT = ${Ti} + ${ΔT} = ${Tf}°C`
-        ],
-        answer: `${Tf}°C`,
-        concept: 'Specific Heat Capacity',
-        hint: 'q = mcΔT relates heat to temperature change'
-      };
-    },
-  
-    // Question Type 13: Bomb Calorimetry
-    generateBombCalorimetry() {
-      const substances = [
-        { name: 'glucose', formula: 'C₆H₁₂O₆', qcomb: 2800 },
-        { name: 'sucrose', formula: 'C₁₂H₂₂O₁₁', qcomb: 5640 },
-        { name: 'benzoic acid', formula: 'C₇H₆O₂', qcomb: 3220 }
-      ];
-      
-      const substance = this.random(substances);
-      const mass = this.randomNum(1, 5, 2);
-      const Ccal = this.randomNum(8, 15, 1);
-      
-      const ΔT = ((mass * substance.qcomb) / Ccal).toFixed(2);
-      
-      return {
-        id: `bc_${Date.now()}_${Math.random()}`,
-        type: 'Calorimetry',
-        icon: '💣',
-        difficulty: 'Hard',
-        color: '#3B82F6',
-        question: `${mass} g of ${substance.name} (${substance.formula}) is combusted in a bomb calorimeter with heat capacity ${Ccal} kJ/°C. Calculate the temperature rise.\n\n(Heat of combustion = ${substance.qcomb} kJ/g)`,
-        solution: [
-          'In bomb calorimetry:',
-          'qcomb = CcalΔT',
-          '',
-          `qcomb = (${mass} g)(${substance.qcomb} kJ/g) = ${(mass * substance.qcomb).toFixed(1)} kJ`,
-          '',
-          `ΔT = qcomb / Ccal = ${(mass * substance.qcomb).toFixed(1)} kJ / ${Ccal} kJ/°C`,
-          `ΔT = ${ΔT}°C`
-        ],
-        answer: `${ΔT}°C`,
-        concept: 'Bomb Calorimetry',
-        hint: 'Heat released = calorimeter heat capacity × ΔT'
-      };
-    },
-  
-    // Question Type 14: Reaction Spontaneity at Different Temperatures
-    generateSpontaneityTemperature() {
-      const reactions = [
-        { name: 'decomposition of calcium carbonate', ΔH: 178, ΔS: 160 },
-        { name: 'melting of ice', ΔH: 6.01, ΔS: 22 },
-        { name: 'Haber process', ΔH: -92.4, ΔS: -198.6 }
-      ];
-      
-      const rxn = this.random(reactions);
-      const T = this.randomNum(273, 500);
-      const ΔG = (rxn.ΔH - T * rxn.ΔS / 1000).toFixed(1);
-      const spontaneous = parseFloat(ΔG) < 0 ? 'spontaneous' : 'non-spontaneous';
-      
-      return {
-        id: `st_${Date.now()}_${Math.random()}`,
-        type: 'Spontaneity',
-        icon: '🎯',
-        difficulty: 'Medium',
-        color: '#EF4444',
-        question: `Determine if the ${rxn.name} is spontaneous at ${T} K.\n\nΔH° = ${rxn.ΔH} kJ/mol\nΔS° = ${rxn.ΔS} J/mol·K`,
-        solution: [
-          'Calculate ΔG° to determine spontaneity:',
-          'ΔG° = ΔH° - TΔS°',
-          '',
-          `ΔG° = ${rxn.ΔH} kJ/mol - (${T} K)(${rxn.ΔS} J/mol·K × 10⁻³ kJ/J)`,
-          `ΔG° = ${rxn.ΔH} - ${(T * rxn.ΔS / 1000).toFixed(1)} = ${ΔG} kJ/mol`,
-          '',
-          `Since ΔG° ${parseFloat(ΔG) < 0 ? '<' : '>'} 0, the reaction is ${spontaneous} at ${T} K.`
-        ],
-        answer: `${spontaneous} (ΔG° = ${ΔG} kJ/mol)`,
-        concept: 'Temperature Dependence of Spontaneity',
-        hint: 'Spontaneous when ΔG < 0'
-      };
-    },
-  
-    // Question Type 15: Rate Constant from Activation Energy
-    generateActivationEnergy() {
-      const Ea = this.randomNum(40, 120, 1);
-      const T = this.randomNum(273, 400);
-      const A = this.randomNum(1, 10) * Math.pow(10, this.randomNum(8, 13));
-      
-      const k = A * Math.exp(-Ea * 1000 / (this.R_GAS_CONSTANT * T));
-      const kFormatted = k.toExponential(2);
-      
-      return {
-        id: `ae_${Date.now()}_${Math.random()}`,
-        type: 'Kinetics',
-        icon: '⏱️',
-        difficulty: 'Hard',
-        color: '#F59E0B',
-        question: `Calculate the rate constant k at ${T} K for a reaction with activation energy Ea = ${Ea} kJ/mol and pre-exponential factor A = ${A.toExponential(2)} s⁻¹.`,
-        solution: [
-          'Use the Arrhenius equation:',
-          'k = A × e^(-Ea/RT)',
-          '',
-          `k = (${A.toExponential(2)} s⁻¹) × exp[-(${Ea} × 1000 J/mol) / (${this.R_GAS_CONSTANT} J/mol·K × ${T} K)]`,
-          `k = (${A.toExponential(2)}) × exp(${(-Ea * 1000 / (this.R_GAS_CONSTANT * T)).toFixed(2)})`,
-          `k = ${kFormatted} s⁻¹`
-        ],
-        answer: `${kFormatted} s⁻¹`,
-        concept: 'Arrhenius Equation',
-        hint: 'Higher temperature and lower Ea give larger k'
-      };
-    },
-  
-    // Master function to generate all questions
-    generateQuestionSet(count = 50) {
-      const generators = [
-        this.generateInternalEnergy,
-        this.generateWorkDone,
-        this.generateWorkConstantPressure,
-        this.generateGibbsEnergy,
-        this.generateHeatTransfer,
-        this.generateEntropy,
-        this.generateEquilibrium,
-        this.generateHeatVaporization,
-        this.generateHeatFusion,
-        this.generateHessLaw,
-        this.generateEnthalpyFormation,
-        this.generateTemperatureChange,
-        this.generateBombCalorimetry,
-        this.generateSpontaneityTemperature,
-        this.generateActivationEnergy
-      ];
-      
-      const questions = [];
-      for (let i = 0; i < count; i++) {
-        const generator = this.random(generators);
-        questions.push(generator.call(this));
+    };
+  },
+
+  // =========================================================================
+  // JAMB (Nigeria) - Organic Chemistry & Industrial Processes
+  // =========================================================================
+  generateJAMB() {
+    const reactions = [
+      {
+        q: "Which sequence correctly converts Ethanol to Ethanoic Acid?",
+        a: "Oxidation with KMnO₄/H⁺",
+        d1: "Dehydration with H₂SO₄",
+        d2: "Reduction with LiAlH₄",
+        d3: "Esterification with Methanol",
+        exp: "Ethanol (primary alcohol) oxidizes to Ethanoic Acid using a strong oxidizing agent like acidified KMnO₄ or K₂Cr₂O₇."
+      },
+      {
+        q: "What is the major product formed when Propene reacts with HBr obeys Markovnikov's rule?",
+        a: "2-bromopropane",
+        d1: "1-bromopropane",
+        d2: "1,2-dibromopropane",
+        d3: "Propan-2-ol",
+        exp: "According to Markovnikov's rule, the H adds to the carbon with more hydrogens, and Br adds to the more substituted carbon."
+      },
+      {
+        q: "The industrial preparation of Ammonia uses which process and catalyst?",
+        a: "Haber Process; Iron catalyst",
+        d1: "Contact Process; Vanadium(V) Oxide",
+        d2: "Solvay Process; Nickel",
+        d3: "Ostwald Process; Platinum",
+        exp: "The Haber process combines N₂ and H₂ to form NH₃ using an Iron catalyst at high pressure and moderate temperature."
       }
-      
-      // Shuffle questions
-      return questions.sort(() => Math.random() - 0.5);
+    ];
+
+    const item = this.random(reactions);
+
+    return {
+      id: `jamb_${Date.now()}_${Math.random()}`,
+      examType: "JAMB (UTME)",
+      topic: "Organic/Industrial Chemistry",
+      difficulty: "Hard",
+      type: "Concept",
+      icon: "🇳🇬",
+      question: item.q,
+      options: [
+        { id: "A", text: item.a },
+        { id: "B", text: item.d1 },
+        { id: "C", text: item.d2 },
+        { id: "D", text: item.d3 }
+      ],
+      answer: item.a,
+      correctOptionId: "A",
+      solution: [
+        `Correct Answer: ${item.a}`,
+        `Reasoning: ${item.exp}`,
+        "Distractor Analysis:",
+        `- ${item.d1}: Incorrect specific reagent/rule application.`,
+        `- ${item.d2}: Incorrect reaction type (e.g. reduction vs oxidation).`
+      ]
+    };
+  },
+
+  // =========================================================================
+  // AP Chemistry (US) - Electrochemistry & Nernst Equation
+  // =========================================================================
+  generateAP() {
+    const eCat = this.randomNum(0.34, 1.5, 2);
+    const eAnode = this.randomNum(-2.7, -0.1, 2);
+    const standardCellPot = (eCat - eAnode).toFixed(2);
+
+    const d1 = (eCat + eAnode).toFixed(2);
+    const d2 = (eAnode - eCat).toFixed(2);
+    const d3 = (eCat * -1).toFixed(2);
+
+    return {
+      id: `ap_${Date.now()}_${Math.random()}`,
+      examType: "AP Chemistry",
+      topic: "Electrochemistry",
+      difficulty: "Medium",
+      type: "Calculation",
+      icon: "⚡",
+      question: `A galvanic cell has a cathode with E° = ${eCat} V and an anode with E° = ${eAnode} V. Calculate the standard cell potential (E°cell).`,
+      options: [
+        { id: "A", text: `${standardCellPot} V` },
+        { id: "B", text: `${d1} V` },
+        { id: "C", text: `${d2} V` },
+        { id: "D", text: `${d3} V` }
+      ],
+      answer: `${standardCellPot} V`,
+      correctOptionId: "A",
+      solution: [
+        "1. Standard Cell Potential formula: E°cell = E°cathode - E°anode",
+        "   (Reduction potential of cathode minus reduction potential of anode)",
+        `2. Substitute: ${eCat} V - (${eAnode} V)`,
+        `3. ${eCat} + ${Math.abs(eAnode)} = ${standardCellPot} V`,
+        "4. A positive E°cell indicates a spontaneous reaction."
+      ]
+    };
+  },
+
+  // =========================================================================
+  // CSAT (South Korea) - Quantitative Stoichiometry
+  // =========================================================================
+  generateCSAT() {
+    const c = this.random([1, 2, 3, 4]);
+    const h = this.random([4, 6, 8, 10]);
+    const volFuel = 10;
+    const volCO2 = volFuel * c;
+    const volH2O = volFuel * (h / 2);
+    const formula = `C${c}H${h}`;
+
+    return {
+      id: `csat_${Date.now()}_${Math.random()}`,
+      examType: "CSAT (Suneung)",
+      topic: "Stoichiometry",
+      difficulty: "Hard",
+      type: "Quantitative Analysis",
+      icon: "🇰🇷",
+      question: `Complete combustion of ${volFuel} mL of a gaseous hydrocarbon CxHy produces ${volCO2} mL of CO₂ and ${volH2O} mL of H₂O vapor at the same temperature and pressure.\n\nDetermine the molecular formula of the hydrocarbon.`,
+      options: [
+        { id: "A", text: formula },
+        { id: "B", text: `C${c + 1}H${h}` },
+        { id: "C", text: `C${c}H${h - 2}` },
+        { id: "D", text: `C${Math.max(1, c - 1)}H${h}` }
+      ],
+      answer: formula,
+      correctOptionId: "A",
+      solution: [
+        "1. According to Avogadro's Law, volume ratio = mole ratio at constant T, P.",
+        `2. Ratio Fuel : CO₂ : H₂O = ${volFuel} : ${volCO2} : ${volH2O}`,
+        `3. Simplify Ratio -> 1 : ${volCO2 / volFuel} : ${volH2O / volFuel}`,
+        "4. This means 1 molecule of Fuel contains:",
+        `   - ${volCO2 / volFuel} Carbon atoms (from CO₂)`,
+        `   - ${(volH2O / volFuel) * 2} Hydrogen atoms (from H₂O, since each has 2 H)`,
+        `5. Therefore x = ${c}, y = ${h} -> Formula: ${formula}`
+      ]
+    };
+  },
+
+  // =========================================================================
+  // Common Test (Japan) - Data Interpretation
+  // =========================================================================
+  generateCommonTest() {
+    const n = 1;
+    const v1 = this.randomNum(10, 20);
+    const v2 = this.randomNum(30, 50);
+    const pTarget = this.randomNum(1, 5);
+    const tTarget = (pTarget * v1) / (n * 0.08206);
+    const tWrong = (pTarget * v2) / (n * 0.08206);
+
+    return {
+      id: `jp_${Date.now()}_${Math.random()}`,
+      examType: "Common Test",
+      topic: "States of Matter",
+      difficulty: "Hard",
+      type: "Data Interpretation",
+      icon: "🇯🇵",
+      question: `Consider 1 mol of an ideal gas. Line A represents the P-T relationship at Volume V₁ = ${v1} L. Line B represents the P-T relationship at Volume V₂ = ${v2} L.\n\nCalculate the temperature (T) on Line A when the pressure is ${pTarget} atm. (R = 0.082 L·atm/K·mol).`,
+      options: [
+        { id: "A", text: `${Math.round(tTarget)} K` },
+        { id: "B", text: `${Math.round(tWrong)} K` },
+        { id: "C", text: `${Math.round(tTarget / 2)} K` },
+        { id: "D", text: `${Math.round(tTarget * 2)} K` }
+      ],
+      answer: `${Math.round(tTarget)} K`,
+      correctOptionId: "A",
+      solution: [
+        "1. Ideal Gas Law: PV = nRT -> P = (nR/V)T",
+        "2. This is a linear relationship P = mT where slope m = nR/V.",
+        `3. For Line A (Volume V₁ = ${v1} L):`,
+        `   T = PV / nR = (${pTarget} atm × ${v1} L) / (1 mol × 0.082 L·atm/K·mol)`,
+        `4. Calculation: ${pTarget * v1} / 0.082 ≈ ${Math.round(tTarget)} K`
+      ]
+    };
+  },
+
+  // Master function to generate mixed exam-style set OR specific focused sets
+  generateQuestionSet(count = 10, specificExam = null) {
+    // 1. Collect Manual Questions
+    let manualPool = [];
+    Object.values(MANUAL_QUESTIONS).forEach(questions => {
+      manualPool = [...manualPool, ...questions];
+    });
+
+    // Filter manual questions if specific exam requested
+    if (specificExam) {
+      manualPool = manualPool.filter(q =>
+        q.examType.toLowerCase().includes(specificExam.toLowerCase())
+      );
     }
-  };
-  
-  export default QuestionGenerator;
+
+    // Shuffle manual pool
+    manualPool = manualPool.sort(() => Math.random() - 0.5);
+
+    // 2. Prepare Generators
+    const generators = {
+      'MCAT': this.generateMCAT.bind(this),
+      'GAOKAO': this.generateGaokao.bind(this),
+      'JAMB': this.generateJAMB.bind(this),
+      'AP': this.generateAP.bind(this),
+      'CSAT': this.generateCSAT.bind(this),
+      'COMMON_TEST': this.generateCommonTest.bind(this)
+    };
+
+    let selectedGenerators = [];
+    if (specificExam && generators[specificExam]) {
+      selectedGenerators = [generators[specificExam]];
+    } else {
+      selectedGenerators = Object.values(generators);
+    }
+
+    const questions = [];
+
+    // 3. Fill from Manual Pool first
+    for (let i = 0; i < count && i < manualPool.length; i++) {
+      const mq = manualPool[i];
+      // Shuffle options for manual questions
+      const shuffledOptions = mq.options.sort(() => Math.random() - 0.5);
+      const correctIndex = shuffledOptions.findIndex(opt => opt.id === mq.correctOptionId);
+
+      const safeQ = {
+        ...mq,
+        icon: mq.icon || '📝',
+        type: mq.type || 'Standard',
+        options: shuffledOptions.map((opt, idx) => ({ ...opt, id: String.fromCharCode(65 + idx) })),
+        correctOptionId: String.fromCharCode(65 + correctIndex)
+      };
+      questions.push(safeQ);
+    }
+
+    // 4. Generate Remainder
+    const remainingCount = count - questions.length;
+
+    for (let i = 0; i < remainingCount; i++) {
+      const gen = this.random(selectedGenerators);
+      const q = gen();
+
+      // Shuffle options and fix correctOptionId mapping logic
+      const shuffledOptions = q.options.sort(() => Math.random() - 0.5);
+      const correctIndex = shuffledOptions.findIndex(opt => opt.text === q.answer || opt.text.includes(q.answer));
+
+      // Reset IDs to A, B, C, D for display
+      q.options = shuffledOptions.map((opt, idx) => ({ ...opt, id: String.fromCharCode(65 + idx) }));
+      // Update correctOptionId to match the new position
+      q.correctOptionId = String.fromCharCode(65 + correctIndex);
+
+      questions.push(q);
+    }
+
+    // Final Shuffle of the mixed set
+    return questions.sort(() => Math.random() - 0.5);
+  }
+};
+
+export default QuestionGenerator;

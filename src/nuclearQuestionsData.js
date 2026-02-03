@@ -28,10 +28,10 @@ export const questionTemplates = {
     
     energyRelease: [
       "Calculate the energy released in the {reaction_type} of {parent} to {daughter}.",
-      "Determine the Q-value for the decay: {parent} → {daughter}.",
+      "Determine the Q-value for the decay: {parent} -> {daughter}.",
       "What is the energy released when {parent} undergoes {reaction_type} to form {daughter}?",
       "Find the energy output in the transformation of {parent} to {daughter}.",
-      "Calculate the energy released in the nuclear reaction: {parent} → {daughter}."
+      "Calculate the energy released in the nuclear reaction: {parent} -> {daughter}."
     ],
     
     activity: [
@@ -53,9 +53,9 @@ export const questionTemplates = {
     fusionEnergy: [
       "Calculate the energy released in the fusion of {reactant1} and {reactant2} to form {product}.",
       "Determine the energy output when {reactant1} fuses with {reactant2} to create {product}.",
-      "What is the Q-value for the fusion reaction: {reactant1} + {reactant2} → {product}?",
-      "Find the energy released in fusion: {reactant1} + {reactant2} → {product}.",
-      "Calculate the fusion energy for the reaction {reactant1} + {reactant2} → {product}."
+      "What is the Q-value for the fusion reaction: {reactant1} + {reactant2} -> {product}?",
+      "Find the energy released in fusion: {reactant1} + {reactant2} -> {product}.",
+      "Calculate the fusion energy for the reaction {reactant1} + {reactant2} -> {product}."
     ]
   };
   
@@ -439,7 +439,7 @@ export const questionTemplates = {
     
     return {
       steps: [
-        `${isotope.decayType} decay: ${isotope.symbol} → ${isotope.daughter.symbol}`,
+        `${isotope.decayType} decay: ${isotope.symbol} -> ${isotope.daughter.symbol}`,
         "Calculate energy using E = Δm × c²:",
         `Δm = ${isotope.mass} u - ${isotope.daughter.mass} u`,
         `Δm = ${massDefect.toFixed(4)} u`,
@@ -503,7 +503,7 @@ export const questionTemplates = {
     
     return {
       steps: [
-        `Fusion reaction: ${fusion.reactants.map(r => r.symbol).join(' + ')} → ${fusion.products.map(p => p.symbol).join(' + ')}`,
+        `Fusion reaction: ${fusion.reactants.map(r => r.symbol).join(' + ')} -> ${fusion.products.map(p => p.symbol).join(' + ')}`,
         "Calculate mass defect:",
         `Initial mass = ${initialMass.toFixed(4)} u`,
         `Final mass = ${finalMass.toFixed(4)} u`,

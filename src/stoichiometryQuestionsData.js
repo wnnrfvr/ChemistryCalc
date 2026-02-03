@@ -54,7 +54,7 @@ export const questionTemplates = {
 // Chemical Reactions Database - Original Base Set
 const chemicalReactionsOriginal = [
   {
-    equation: "2 H₂ + O₂ → 2 H₂O",
+    equation: "2 H₂ + O₂ -> 2 H₂O",
     reactants: [
       { formula: "H₂", name: "hydrogen", coefficient: 2, molarMass: 2.016 },
       { formula: "O₂", name: "oxygen", coefficient: 1, molarMass: 32.00 }
@@ -67,7 +67,7 @@ const chemicalReactionsOriginal = [
     description: "Formation of water"
   },
   {
-    equation: "4 NH₃ + 5 O₂ → 4 NO + 6 H₂O",
+    equation: "4 NH₃ + 5 O₂ -> 4 NO + 6 H₂O",
     reactants: [
       { formula: "NH₃", name: "ammonia", coefficient: 4, molarMass: 17.031 },
       { formula: "O₂", name: "oxygen", coefficient: 5, molarMass: 32.00 }
@@ -81,7 +81,7 @@ const chemicalReactionsOriginal = [
     description: "Oxidation of ammonia"
   },
   {
-    equation: "C₆H₁₂O₆ → 2 C₂H₅OH + 2 CO₂",
+    equation: "C₆H₁₂O₆ -> 2 C₂H₅OH + 2 CO₂",
     reactants: [
       { formula: "C₆H₁₂O₆", name: "glucose", coefficient: 1, molarMass: 180.156 }
     ],
@@ -94,7 +94,7 @@ const chemicalReactionsOriginal = [
     description: "Alcoholic fermentation"
   },
   {
-    equation: "2 Al + 3 Cl₂ → 2 AlCl₃",
+    equation: "2 Al + 3 Cl₂ -> 2 AlCl₃",
     reactants: [
       { formula: "Al", name: "aluminum", coefficient: 2, molarMass: 26.982 },
       { formula: "Cl₂", name: "chlorine", coefficient: 3, molarMass: 70.906 }
@@ -107,7 +107,7 @@ const chemicalReactionsOriginal = [
     description: "Formation of aluminum chloride"
   },
   {
-    equation: "2 NaOH + H₂SO₄ → Na₂SO₄ + 2 H₂O",
+    equation: "2 NaOH + H₂SO₄ -> Na₂SO₄ + 2 H₂O",
     reactants: [
       { formula: "NaOH", name: "sodium hydroxide", coefficient: 2, molarMass: 39.997 },
       { formula: "H₂SO₄", name: "sulfuric acid", coefficient: 1, molarMass: 98.079 }
@@ -121,7 +121,7 @@ const chemicalReactionsOriginal = [
     description: "Acid-base neutralization"
   },
   {
-    equation: "CaCO₃ → CaO + CO₂",
+    equation: "CaCO₃ -> CaO + CO₂",
     reactants: [
       { formula: "CaCO₃", name: "calcium carbonate", coefficient: 1, molarMass: 100.087 }
     ],
@@ -134,7 +134,7 @@ const chemicalReactionsOriginal = [
     description: "Thermal decomposition of limestone"
   },
   {
-    equation: "CH₄ + 2 O₂ → CO₂ + 2 H₂O",
+    equation: "CH₄ + 2 O₂ -> CO₂ + 2 H₂O",
     reactants: [
       { formula: "CH₄", name: "methane", coefficient: 1, molarMass: 16.043 },
       { formula: "O₂", name: "oxygen", coefficient: 2, molarMass: 32.00 }
@@ -148,7 +148,7 @@ const chemicalReactionsOriginal = [
     description: "Complete combustion of methane"
   },
   {
-    equation: "N₂ + 3 H₂ → 2 NH₃",
+    equation: "N₂ + 3 H₂ -> 2 NH₃",
     reactants: [
       { formula: "N₂", name: "nitrogen", coefficient: 1, molarMass: 28.014 },
       { formula: "H₂", name: "hydrogen", coefficient: 3, molarMass: 2.016 }
@@ -161,7 +161,7 @@ const chemicalReactionsOriginal = [
     description: "Haber process for ammonia"
   },
   {
-    equation: "2 Fe + 3 Cl₂ → 2 FeCl₃",
+    equation: "2 Fe + 3 Cl₂ -> 2 FeCl₃",
     reactants: [
       { formula: "Fe", name: "iron", coefficient: 2, molarMass: 55.845 },
       { formula: "Cl₂", name: "chlorine", coefficient: 3, molarMass: 70.906 }
@@ -174,7 +174,7 @@ const chemicalReactionsOriginal = [
     description: "Formation of iron chloride"
   },
   {
-    equation: "C₃H₈ + 5 O₂ → 3 CO₂ + 4 H₂O",
+    equation: "C₃H₈ + 5 O₂ -> 3 CO₂ + 4 H₂O",
     reactants: [
       { formula: "C₃H₈", name: "propane", coefficient: 1, molarMass: 44.096 },
       { formula: "O₂", name: "oxygen", coefficient: 5, molarMass: 32.00 }
@@ -188,7 +188,7 @@ const chemicalReactionsOriginal = [
     description: "Complete combustion of propane"
   },
   {
-    equation: "2 Mg + O₂ → 2 MgO",
+    equation: "2 Mg + O₂ -> 2 MgO",
     reactants: [
       { formula: "Mg", name: "magnesium", coefficient: 2, molarMass: 24.305 },
       { formula: "O₂", name: "oxygen", coefficient: 1, molarMass: 32.00 }
@@ -201,7 +201,7 @@ const chemicalReactionsOriginal = [
     description: "Oxidation of magnesium"
   },
   {
-    equation: "C₄H₁₀ + 6.5 O₂ → 4 CO₂ + 5 H₂O",
+    equation: "C₄H₁₀ + 6.5 O₂ -> 4 CO₂ + 5 H₂O",
     reactants: [
       { formula: "C₄H₁₀", name: "butane", coefficient: 1, molarMass: 58.122 },
       { formula: "O₂", name: "oxygen", coefficient: 6.5, molarMass: 32.00 }
@@ -403,8 +403,8 @@ const calculateGramsToGrams = (grams, reactant, product, reaction) => {
       `Result: ${gramsProduct.toFixed(2)} g ${product.formula}`
     ],
     answer: `${gramsProduct.toFixed(2)} g`,
-    explanation: `This is a complete mass-to-mass conversion: grams of ${reactant.name} → moles → moles of ${product.name} → grams of ${product.name}.`,
-    pathway: "g → mol → mol → g"
+    explanation: `This is a complete mass-to-mass conversion: grams of ${reactant.name} -> moles -> moles of ${product.name} -> grams of ${product.name}.`,
+    pathway: "g -> mol -> mol -> g"
   };
 };
 

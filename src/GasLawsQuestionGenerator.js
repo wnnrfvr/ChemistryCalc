@@ -58,7 +58,7 @@ const GasLawsQuestionGenerator = {
         ],
         answer: `${V2} L`,
         concept: 'Pressure × Volume = constant (at constant T)',
-        hint: 'Inverse relationship: ↑ pressure → ↓ volume'
+        hint: 'Inverse relationship: ↑ pressure -> ↓ volume'
       };
     },
   
@@ -93,7 +93,7 @@ const GasLawsQuestionGenerator = {
         ],
         answer: `${V2} L`,
         concept: 'Volume / Temperature = constant (at constant P)',
-        hint: 'Direct relationship: ↑ temperature → ↑ volume'
+        hint: 'Direct relationship: ↑ temperature -> ↑ volume'
       };
     },
   
@@ -128,7 +128,7 @@ const GasLawsQuestionGenerator = {
         ],
         answer: `${P2} atm`,
         concept: 'Pressure / Temperature = constant (at constant V)',
-        hint: 'Direct relationship: ↑ temperature → ↑ pressure'
+        hint: 'Direct relationship: ↑ temperature -> ↑ pressure'
       };
     },
   
@@ -366,7 +366,7 @@ const GasLawsQuestionGenerator = {
         ],
         answer: `${density} g/L`,
         concept: 'Density = PM/RT for ideal gases',
-        hint: 'Higher pressure → higher density'
+        hint: 'Higher pressure -> higher density'
       };
     },
   
@@ -431,7 +431,7 @@ const GasLawsQuestionGenerator = {
           `V = ${volume} L`
         ],
         answer: `${volume} L`,
-        concept: 'STP: 273 K, 1 atm → 22.4 L/mol',
+        concept: 'STP: 273 K, 1 atm -> 22.4 L/mol',
         hint: 'Standard Temperature and Pressure conditions'
       };
     },

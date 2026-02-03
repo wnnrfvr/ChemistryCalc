@@ -173,8 +173,8 @@ const SolutionQuestionGenerator = {
         color: '#EC4899',
         question: `A ${Vacid} mL sample of ${acid.name} is titrated with a ${Mbase} M solution of ${base.name}. The endpoint is reached when ${Vbase} mL of ${base.name} solution is added. Calculate the concentration of the ${acid.name} solution.`,
         solution: [
-          'Balanced equation: Acid + Base → Salt + Water',
-          `${acid.formula} + ${base.formula} → Salt + H₂O`,
+          'Balanced equation: Acid + Base -> Salt + Water',
+          `${acid.formula} + ${base.formula} -> Salt + H₂O`,
           '',
           'At equivalence point: n(acid) = n(base)',
           '',

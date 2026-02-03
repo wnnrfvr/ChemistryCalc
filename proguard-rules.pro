@@ -28,10 +28,23 @@
 -keep class expo.modules.** { *; }
 -keep class host.exp.exponent.** { *; }
 
-# Google Mobile Ads
--keep class com.google.android.gms.ads.** { *; }
--keep class com.google.ads.** { *; }
+# Google Mobile Ads (GMS)
+# Only keep public classes/methods for GMS Ads to allow shrinking of internals
+-keep public class com.google.android.gms.ads.** {
+   public *;
+}
 -dontwarn com.google.android.gms.**
+
+# IronSource / Unity LevelPlay
+-keepclassmembers class com.ironsource.sdk.controller.IronSourceWebView$JSInterface {
+    public *;
+}
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator *;
+}
+-keep class com.ironsource.adapters.** { *; }
+-dontwarn com.ironsource.mediationsdk.**
+-dontwarn com.ironsource.adapters.**
 
 # React Native Share
 -keep class cl.json.** { *; }
@@ -61,11 +74,10 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 
-# OkHttp & Okio (used by many libraries)
+# OkHttp & Okio
+# Do NOT keep everything, let R8 shrink unused parts. Just suppress warnings.
 -dontwarn okhttp3.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
--keep class okio.** { *; }
 
 # Keep model classes (if any)
 -keep class **.models.** { *; }

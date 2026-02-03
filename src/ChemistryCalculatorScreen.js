@@ -1,18 +1,34 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Dimensions,
-  Platform,
+  View, Text, TextInput, TouchableOpacity, ScrollView,
+  StyleSheet, Dimensions, Platform, Animated, Easing
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
+// ========================================
+// PREMIUM COLOR SYSTEM
+// ========================================
+const COLORS = {
+  background: ['#0B0D17', '#151923', '#1A1F2E'],
+  accent1: '#00F5FF',
+  accent2: '#B794F6',
+  accent3: '#FF6B9D',
+  accent4: '#FFC059',
+  accent5: '#00FF88',
+  text: '#FFFFFF',
+  textDim: '#8B92A8',
+  textBright: '#E8ECF4',
+  border: 'rgba(255, 255, 255, 0.08)',
+  card: '#1C2333',
+};
+
+// ========================================
+// ATOMIC DATA
+// ========================================
 const atomicMasses = {
   H: 1.008, He: 4.0026, Li: 6.94, Be: 9.0122, B: 10.81, C: 12.011,
   N: 14.007, O: 15.999, F: 18.998, Ne: 20.180, Na: 22.990, Mg: 24.305,
@@ -22,6 +38,9 @@ const atomicMasses = {
   Ga: 69.723, Ge: 72.630, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798,
 };
 
+// ========================================
+// HELPER FUNCTIONS
+// ========================================
 const parseFormula = (formula) => {
   const elements = {};
   let i = 0;
@@ -75,67 +94,156 @@ const calculatePercentComposition = (formula) => {
   return comp;
 };
 
-const InputField = ({ label, value, onChange, placeholder, unit }) => (
-  <View style={styles.inputContainer}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <View style={styles.inputWrapper}>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor="#64748B"
-        keyboardType="numeric"
+// ========================================
+// PREMIUM COMPONENTS
+// ========================================
+const GlassCard = ({ children, style, gradient = null }) => (
+  <View style={[styles.glassCard, style]}>
+    {gradient && (
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.glassGradient}
       />
-      {unit && <Text style={styles.unitText}>{unit}</Text>}
-    </View>
+    )}
+    <BlurView intensity={15} tint="dark" style={styles.glassBlur}>
+      {children}
+    </BlurView>
   </View>
 );
 
-const ResultDisplay = ({ result, unit, label }) => {
-  if (!result) return null;
+const PremiumInput = ({ label, value, onChange, placeholder, unit, gradient }) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const focusAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(focusAnim, {
+      toValue: isFocused ? 1 : 0,
+      useNativeDriver: false,
+      tension: 50,
+      friction: 7,
+    }).start();
+  }, [isFocused]);
+
+  const borderColor = focusAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(255, 255, 255, 0.08)', gradient[0]],
+  });
+
   return (
-    <View style={styles.resultContainer}>
-      <View style={styles.resultHeader}>
-        <View style={styles.sparkle} />
-        <Text style={styles.resultLabel}>{label}</Text>
-      </View>
-      <Text style={styles.resultValue}>
-        {result} <Text style={styles.resultUnit}>{unit}</Text>
-      </Text>
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <Animated.View style={[styles.inputWrapper, { borderColor }]}>
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor={COLORS.textDim}
+          keyboardType="numeric"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+        {unit && (
+          <View style={styles.unitBadge}>
+            <Text style={styles.unitText}>{unit}</Text>
+          </View>
+        )}
+      </Animated.View>
     </View>
   );
 };
 
-const CalculatorSection = ({ title, icon, color, children, expanded, onToggle }) => {
+const ResultDisplay = ({ result, unit, label, gradient }) => {
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const slideUp = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    if (result) {
+      fadeIn.setValue(0);
+      slideUp.setValue(30);
+      Animated.parallel([
+        Animated.spring(fadeIn, { toValue: 1, useNativeDriver: true, tension: 50, friction: 7 }),
+        Animated.spring(slideUp, { toValue: 0, useNativeDriver: true, tension: 50, friction: 7 }),
+      ]).start();
+    }
+  }, [result]);
+
+  if (!result) return null;
+
   return (
-    <View style={[styles.section, { borderLeftColor: color, borderLeftWidth: 4 }]}>
-      <TouchableOpacity style={styles.sectionHeader} onPress={onToggle} activeOpacity={0.7}>
-        <View style={styles.sectionTitleContainer}>
-          <View style={[styles.iconContainer, { backgroundColor: color }]}>
-            <Text style={styles.iconText}>{icon}</Text>
+    <Animated.View style={[styles.resultContainer, { opacity: fadeIn, transform: [{ translateY: slideUp }] }]}>
+      <LinearGradient
+        colors={[...gradient, gradient[0] + '00']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.resultGradient}
+      >
+        <View style={styles.resultInner}>
+          <View style={styles.resultHeader}>
+            <View style={[styles.resultDot, { backgroundColor: gradient[0] }]} />
+            <Text style={[styles.resultLabel, { color: gradient[0] }]}>{label}</Text>
           </View>
+          <Text style={styles.resultValue}>
+            {result} <Text style={styles.resultUnit}>{unit}</Text>
+          </Text>
+        </View>
+      </LinearGradient>
+    </Animated.View>
+  );
+};
+
+const CalculatorSection = ({ title, icon, gradient, children, expanded, onToggle }) => {
+  const rotateAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(rotateAnim, {
+      toValue: expanded ? 1 : 0,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  }, [expanded]);
+
+  const rotation = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
+  return (
+    <GlassCard style={styles.section}>
+      <TouchableOpacity style={styles.sectionHeader} onPress={onToggle} activeOpacity={0.8}>
+        <View style={styles.sectionTitleContainer}>
+          <LinearGradient colors={gradient} style={styles.sectionIconGradient}>
+            <Text style={styles.sectionIcon}>{icon}</Text>
+          </LinearGradient>
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
-        <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
+        <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+          <MaterialCommunityIcons name="chevron-down" size={24} color={COLORS.textDim} />
+        </Animated.View>
       </TouchableOpacity>
       {expanded && <View style={styles.sectionContent}>{children}</View>}
-    </View>
+    </GlassCard>
   );
 };
 
+// ========================================
+// MAIN COMPONENT
+// ========================================
 export default function ChemistryCalculator() {
   const [expandedSections, setExpandedSections] = useState({
     stoich: true,
-    thermo: true,
-    gas: true,
-    quantum: true,
-    ph: true,
-    molar: true,
-    comp: true,
+    thermo: false,
+    gas: false,
+    quantum: false,
+    ph: false,
+    molar: false,
+    comp: false,
   });
 
-  // Stoichiometry
+  // State variables for all calculations
   const [molesMass, setMolesMass] = useState('');
   const [molesMolar, setMolesMolar] = useState('');
   const [molesResult, setMolesResult] = useState('');
@@ -144,38 +252,43 @@ export default function ChemistryCalculator() {
   const [massMolar, setMassMolar] = useState('');
   const [massResult, setMassResult] = useState('');
   
-  // Thermodynamics
   const [energyMass, setEnergyMass] = useState('');
   const [energyC, setEnergyC] = useState('');
   const [energyDeltaT, setEnergyDeltaT] = useState('');
   const [energyResult, setEnergyResult] = useState('');
   
-  // Gas
   const [gasN, setGasN] = useState('');
   const [gasT, setGasT] = useState('');
   const [gasV, setGasV] = useState('');
   const [gasResult, setGasResult] = useState('');
   
-  // Quantum
   const [freqE, setFreqE] = useState('');
   const [freqResult, setFreqResult] = useState('');
   
-  // pH
   const [phH, setPhH] = useState('');
   const [phResult, setPhResult] = useState('');
   
-  // Molar Mass
   const [molarFormula, setMolarFormula] = useState('');
   const [molarResult, setMolarResult] = useState('');
   
-  // Composition
   const [compFormula, setCompFormula] = useState('');
   const [compResult, setCompResult] = useState(null);
+
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const slideUp = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(fadeIn, { toValue: 1, useNativeDriver: true, tension: 50, friction: 7 }),
+      Animated.spring(slideUp, { toValue: 0, useNativeDriver: true, tension: 50, friction: 7 }),
+    ]).start();
+  }, []);
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // Calculation functions
   const calculateMoles = () => {
     const mass = parseFloat(molesMass);
     const molar = parseFloat(molesMolar);
@@ -265,470 +378,753 @@ export default function ChemistryCalculator() {
   };
 
   const constants = [
-    { name: 'Avogadro (Nₐ)', value: '6.022 × 10²³', unit: 'mol⁻¹' },
-    { name: 'Gas Constant (R)', value: '8.314', unit: 'J/(mol·K)' },
-    { name: 'Faraday (F)', value: '96,485', unit: 'C/mol' },
-    { name: 'Planck (h)', value: '6.626 × 10⁻³⁴', unit: 'J·s' },
-    { name: 'Speed of Light (c)', value: '3.0 × 10⁸', unit: 'm/s' },
-    { name: 'Boltzmann (k)', value: '1.381 × 10⁻²³', unit: 'J/K' },
+    { name: 'Avogadro (Nₐ)', value: '6.022 × 10²³', unit: 'mol⁻¹', gradient: ['#00F5FF', '#0099FF'] },
+    { name: 'Gas Constant (R)', value: '8.314', unit: 'J/(mol·K)', gradient: ['#00FF88', '#00CC66'] },
+    { name: 'Faraday (F)', value: '96,485', unit: 'C/mol', gradient: ['#FFC059', '#FFAA00'] },
+    { name: 'Planck (h)', value: '6.626 × 10⁻³⁴', unit: 'J·s', gradient: ['#B794F6', '#8B5CF6'] },
+    { name: 'Speed of Light (c)', value: '3.0 × 10⁸', unit: 'm/s', gradient: ['#FF6B9D', '#FF3366'] },
+    { name: 'Boltzmann (k)', value: '1.381 × 10⁻²³', unit: 'J/K', gradient: ['#00D4FF', '#0099CC'] },
   ];
 
   return (
     <View style={styles.container}>
-      <View style={styles.background}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
+      <LinearGradient colors={COLORS.background} style={StyleSheet.absoluteFill} />
+
+      <Animated.ScrollView
+        style={{ opacity: fadeIn, transform: [{ translateY: slideUp }] }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Premium Header */}
+        <View style={styles.header}>
+          <LinearGradient
+            colors={['#00F5FF20', '#B794F620']}
+            style={styles.headerGlow}
+          />
+          <View style={styles.logoContainer}>
+            <LinearGradient
+              colors={['#00F5FF', '#B794F6']}
+              style={styles.logoGradient}
+            >
               <Text style={styles.logoIcon}>⚗️</Text>
+            </LinearGradient>
+          </View>
+          <Text style={styles.title}>ChemLab Pro</Text>
+          <Text style={styles.subtitle}>Advanced Chemistry Calculations</Text>
+          <View style={styles.headerDivider}>
+            <LinearGradient
+              colors={['transparent', '#00F5FF', 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.dividerGradient}
+            />
+          </View>
+        </View>
+
+        {/* Stoichiometry */}
+        <CalculatorSection
+          title="Stoichiometry"
+          icon="🧮"
+          gradient={['#B794F6', '#8B5CF6']}
+          expanded={expandedSections.stoich}
+          onToggle={() => toggleSection('stoich')}
+        >
+          <View style={styles.calcBox}>
+            <View style={styles.formulaContainer}>
+              <LinearGradient
+                colors={['#B794F620', '#B794F605']}
+                style={styles.formulaBg}
+              >
+                <Text style={styles.formula}>n = m / M</Text>
+              </LinearGradient>
             </View>
-            <Text style={styles.title}>ChemLab Pro</Text>
-            <Text style={styles.subtitle}>Advanced Chemistry Calculations</Text>
-            <View style={styles.headerAccent} />
+            <PremiumInput
+              label="Mass"
+              value={molesMass}
+              onChange={setMolesMass}
+              placeholder="0.0"
+              unit="g"
+              gradient={['#B794F6', '#8B5CF6']}
+            />
+            <PremiumInput
+              label="Molar Mass"
+              value={molesMolar}
+              onChange={setMolesMolar}
+              placeholder="0.0"
+              unit="g/mol"
+              gradient={['#B794F6', '#8B5CF6']}
+            />
+            <TouchableOpacity onPress={calculateMoles} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#B794F6', '#8B5CF6']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="calculator" size={20} color="#FFF" />
+                <Text style={styles.buttonText}>Calculate Moles</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <ResultDisplay
+              result={molesResult}
+              unit="mol"
+              label="Moles"
+              gradient={['#00FF88', '#00CC66']}
+            />
           </View>
 
-          {/* Stoichiometry */}
-          <CalculatorSection
-            title="Stoichiometry"
-            icon="🧮"
-            color="#A855F7"
-            expanded={expandedSections.stoich}
-            onToggle={() => toggleSection('stoich')}
-          >
-            <View style={styles.calcBox}>
-              <View style={styles.formulaContainer}>
-                <Text style={styles.formula}>n = m / M</Text>
-              </View>
-              <InputField label="Mass" value={molesMass} onChange={setMolesMass} placeholder="0.0" unit="g" />
-              <InputField label="Molar Mass" value={molesMolar} onChange={setMolesMolar} placeholder="0.0" unit="g/mol" />
-              <TouchableOpacity onPress={calculateMoles} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#A855F7' }]}>
-                <Text style={styles.buttonText}>Calculate Moles</Text>
-              </TouchableOpacity>
-              <ResultDisplay result={molesResult} unit="mol" label="Moles" />
-            </View>
-
-            <View style={styles.calcBox}>
-              <View style={styles.formulaContainer}>
+          <View style={styles.calcBox}>
+            <View style={styles.formulaContainer}>
+              <LinearGradient
+                colors={['#B794F620', '#B794F605']}
+                style={styles.formulaBg}
+              >
                 <Text style={styles.formula}>m = n × M</Text>
-              </View>
-              <InputField label="Moles" value={massMoles} onChange={setMassMoles} placeholder="0.0" unit="mol" />
-              <InputField label="Molar Mass" value={massMolar} onChange={setMassMolar} placeholder="0.0" unit="g/mol" />
-              <TouchableOpacity onPress={calculateMass} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#A855F7' }]}>
+              </LinearGradient>
+            </View>
+            <PremiumInput
+              label="Moles"
+              value={massMoles}
+              onChange={setMassMoles}
+              placeholder="0.0"
+              unit="mol"
+              gradient={['#B794F6', '#8B5CF6']}
+            />
+            <PremiumInput
+              label="Molar Mass"
+              value={massMolar}
+              onChange={setMassMolar}
+              placeholder="0.0"
+              unit="g/mol"
+              gradient={['#B794F6', '#8B5CF6']}
+            />
+            <TouchableOpacity onPress={calculateMass} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#B794F6', '#8B5CF6']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="calculator" size={20} color="#FFF" />
                 <Text style={styles.buttonText}>Calculate Mass</Text>
-              </TouchableOpacity>
-              <ResultDisplay result={massResult} unit="g" label="Mass" />
-            </View>
-          </CalculatorSection>
+              </LinearGradient>
+            </TouchableOpacity>
+            <ResultDisplay
+              result={massResult}
+              unit="g"
+              label="Mass"
+              gradient={['#00FF88', '#00CC66']}
+            />
+          </View>
+        </CalculatorSection>
 
-          {/* Thermodynamics */}
-          <CalculatorSection
-            title="Thermodynamics"
-            icon="🔥"
-            color="#F97316"
-            expanded={expandedSections.thermo}
-            onToggle={() => toggleSection('thermo')}
-          >
-            <View style={styles.calcBox}>
-              <View style={styles.formulaContainer}>
+        {/* Thermodynamics */}
+        <CalculatorSection
+          title="Thermodynamics"
+          icon="🔥"
+          gradient={['#FF6B9D', '#FF3366']}
+          expanded={expandedSections.thermo}
+          onToggle={() => toggleSection('thermo')}
+        >
+          <View style={styles.calcBox}>
+            <View style={styles.formulaContainer}>
+              <LinearGradient
+                colors={['#FF6B9D20', '#FF6B9D05']}
+                style={styles.formulaBg}
+              >
                 <Text style={styles.formula}>Q = m × c × ΔT</Text>
-              </View>
-              <InputField label="Mass" value={energyMass} onChange={setEnergyMass} placeholder="0.0" unit="g" />
-              <InputField label="Specific Heat" value={energyC} onChange={setEnergyC} placeholder="0.0" unit="J/g·K" />
-              <InputField label="Temperature Change" value={energyDeltaT} onChange={setEnergyDeltaT} placeholder="0.0" unit="K" />
-              <TouchableOpacity onPress={calculateEnergy} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#F97316' }]}>
+              </LinearGradient>
+            </View>
+            <PremiumInput
+              label="Mass"
+              value={energyMass}
+              onChange={setEnergyMass}
+              placeholder="0.0"
+              unit="g"
+              gradient={['#FF6B9D', '#FF3366']}
+            />
+            <PremiumInput
+              label="Specific Heat"
+              value={energyC}
+              onChange={setEnergyC}
+              placeholder="0.0"
+              unit="J/g·K"
+              gradient={['#FF6B9D', '#FF3366']}
+            />
+            <PremiumInput
+              label="Temperature Change"
+              value={energyDeltaT}
+              onChange={setEnergyDeltaT}
+              placeholder="0.0"
+              unit="K"
+              gradient={['#FF6B9D', '#FF3366']}
+            />
+            <TouchableOpacity onPress={calculateEnergy} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#FF6B9D', '#FF3366']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="fire" size={20} color="#FFF" />
                 <Text style={styles.buttonText}>Calculate Energy</Text>
-              </TouchableOpacity>
-              <ResultDisplay result={energyResult} unit="J" label="Heat Energy" />
-            </View>
-          </CalculatorSection>
+              </LinearGradient>
+            </TouchableOpacity>
+            <ResultDisplay
+              result={energyResult}
+              unit="J"
+              label="Heat Energy"
+              gradient={['#FFC059', '#FFAA00']}
+            />
+          </View>
+        </CalculatorSection>
 
-          {/* Gas Laws */}
-          <CalculatorSection
-            title="Ideal Gas Law"
-            icon="💨"
-            color="#06B6D4"
-            expanded={expandedSections.gas}
-            onToggle={() => toggleSection('gas')}
-          >
-            <View style={styles.calcBox}>
-              <View style={styles.formulaContainer}>
+        {/* Gas Laws */}
+        <CalculatorSection
+          title="Ideal Gas Law"
+          icon="💨"
+          gradient={['#00F5FF', '#0099FF']}
+          expanded={expandedSections.gas}
+          onToggle={() => toggleSection('gas')}
+        >
+          <View style={styles.calcBox}>
+            <View style={styles.formulaContainer}>
+              <LinearGradient
+                colors={['#00F5FF20', '#00F5FF05']}
+                style={styles.formulaBg}
+              >
                 <Text style={styles.formula}>P = nRT / V</Text>
-              </View>
-              <InputField label="Moles" value={gasN} onChange={setGasN} placeholder="0.0" unit="mol" />
-              <InputField label="Temperature" value={gasT} onChange={setGasT} placeholder="0.0" unit="K" />
-              <InputField label="Volume" value={gasV} onChange={setGasV} placeholder="0.0" unit="m³" />
-              <TouchableOpacity onPress={calculateGas} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#06B6D4' }]}>
+              </LinearGradient>
+            </View>
+            <PremiumInput
+              label="Moles"
+              value={gasN}
+              onChange={setGasN}
+              placeholder="0.0"
+              unit="mol"
+              gradient={['#00F5FF', '#0099FF']}
+            />
+            <PremiumInput
+              label="Temperature"
+              value={gasT}
+              onChange={setGasT}
+              placeholder="0.0"
+              unit="K"
+              gradient={['#00F5FF', '#0099FF']}
+            />
+            <PremiumInput
+              label="Volume"
+              value={gasV}
+              onChange={setGasV}
+              placeholder="0.0"
+              unit="m³"
+              gradient={['#00F5FF', '#0099FF']}
+            />
+            <TouchableOpacity onPress={calculateGas} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#00F5FF', '#0099FF']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="weather-windy" size={20} color="#FFF" />
                 <Text style={styles.buttonText}>Calculate Pressure</Text>
-              </TouchableOpacity>
-              <ResultDisplay result={gasResult} unit="Pa" label="Pressure" />
-            </View>
-          </CalculatorSection>
+              </LinearGradient>
+            </TouchableOpacity>
+            <ResultDisplay
+              result={gasResult}
+              unit="Pa"
+              label="Pressure"
+              gradient={['#00FF88', '#00CC66']}
+            />
+          </View>
+        </CalculatorSection>
 
-          {/* Quantum */}
-          <CalculatorSection
-            title="Quantum Chemistry"
-            icon="⚛️"
-            color="#8B5CF6"
-            expanded={expandedSections.quantum}
-            onToggle={() => toggleSection('quantum')}
-          >
-            <View style={styles.calcBox}>
-              <View style={styles.formulaContainer}>
+        {/* Quantum Chemistry */}
+        <CalculatorSection
+          title="Quantum Chemistry"
+          icon="⚛️"
+          gradient={['#00FF88', '#00CC66']}
+          expanded={expandedSections.quantum}
+          onToggle={() => toggleSection('quantum')}
+        >
+          <View style={styles.calcBox}>
+            <View style={styles.formulaContainer}>
+              <LinearGradient
+                colors={['#00FF8820', '#00FF8805']}
+                style={styles.formulaBg}
+              >
                 <Text style={styles.formula}>f = E / h</Text>
-              </View>
-              <InputField label="Energy" value={freqE} onChange={setFreqE} placeholder="0.0" unit="J" />
-              <TouchableOpacity onPress={calculateFrequency} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#8B5CF6' }]}>
+              </LinearGradient>
+            </View>
+            <PremiumInput
+              label="Energy"
+              value={freqE}
+              onChange={setFreqE}
+              placeholder="0.0"
+              unit="J"
+              gradient={['#00FF88', '#00CC66']}
+            />
+            <TouchableOpacity onPress={calculateFrequency} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#00FF88', '#00CC66']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="atom-variant" size={20} color="#FFF" />
                 <Text style={styles.buttonText}>Calculate Frequency</Text>
-              </TouchableOpacity>
-              <ResultDisplay result={freqResult} unit="Hz" label="Frequency" />
-            </View>
-          </CalculatorSection>
+              </LinearGradient>
+            </TouchableOpacity>
+            <ResultDisplay
+              result={freqResult}
+              unit="Hz"
+              label="Frequency"
+              gradient={['#B794F6', '#8B5CF6']}
+            />
+          </View>
+        </CalculatorSection>
 
-          {/* pH */}
-          <CalculatorSection
-            title="Acid-Base Chemistry"
-            icon="💧"
-            color="#10B981"
-            expanded={expandedSections.ph}
-            onToggle={() => toggleSection('ph')}
-          >
-            <View style={styles.calcBox}>
-              <View style={styles.formulaContainer}>
+        {/* pH Calculator */}
+        <CalculatorSection
+          title="Acid-Base Chemistry"
+          icon="💧"
+          gradient={['#FFC059', '#FFAA00']}
+          expanded={expandedSections.ph}
+          onToggle={() => toggleSection('ph')}
+        >
+          <View style={styles.calcBox}>
+            <View style={styles.formulaContainer}>
+              <LinearGradient
+                colors={['#FFC05920', '#FFC05905']}
+                style={styles.formulaBg}
+              >
                 <Text style={styles.formula}>pH = -log₁₀[H⁺]</Text>
-              </View>
-              <InputField label="[H⁺] Concentration" value={phH} onChange={setPhH} placeholder="0.0" unit="mol/L" />
-              <TouchableOpacity onPress={calculatePh} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#10B981' }]}>
+              </LinearGradient>
+            </View>
+            <PremiumInput
+              label="[H⁺] Concentration"
+              value={phH}
+              onChange={setPhH}
+              placeholder="0.0"
+              unit="mol/L"
+              gradient={['#FFC059', '#FFAA00']}
+            />
+            <TouchableOpacity onPress={calculatePh} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#FFC059', '#FFAA00']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="flask" size={20} color="#FFF" />
                 <Text style={styles.buttonText}>Calculate pH</Text>
-              </TouchableOpacity>
-              <ResultDisplay result={phResult} unit="" label="pH Value" />
-            </View>
-          </CalculatorSection>
+              </LinearGradient>
+            </TouchableOpacity>
+            <ResultDisplay
+              result={phResult}
+              unit=""
+              label="pH Value"
+              gradient={['#00F5FF', '#0099FF']}
+            />
+          </View>
+        </CalculatorSection>
 
-          {/* Molar Mass */}
-          <CalculatorSection
-            title="Molar Mass Calculator"
-            icon="⚖️"
-            color="#F59E0B"
-            expanded={expandedSections.molar}
-            onToggle={() => toggleSection('molar')}
-          >
-            <View style={styles.calcBox}>
-              <InputField label="Chemical Formula" value={molarFormula} onChange={setMolarFormula} placeholder="e.g., H2O" />
-              <TouchableOpacity onPress={calculateMolar} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#F59E0B' }]}>
+        {/* Molar Mass Calculator */}
+        <CalculatorSection
+          title="Molar Mass Calculator"
+          icon="⚖️"
+          gradient={['#00D4FF', '#0099CC']}
+          expanded={expandedSections.molar}
+          onToggle={() => toggleSection('molar')}
+        >
+          <View style={styles.calcBox}>
+            <PremiumInput
+              label="Chemical Formula"
+              value={molarFormula}
+              onChange={setMolarFormula}
+              placeholder="e.g., H2O"
+              gradient={['#00D4FF', '#0099CC']}
+            />
+            <TouchableOpacity onPress={calculateMolar} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#00D4FF', '#0099CC']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="scale-balance" size={20} color="#FFF" />
                 <Text style={styles.buttonText}>Calculate Molar Mass</Text>
-              </TouchableOpacity>
-              <ResultDisplay result={molarResult} unit="g/mol" label="Molar Mass" />
-            </View>
-          </CalculatorSection>
+              </LinearGradient>
+            </TouchableOpacity>
+            <ResultDisplay
+              result={molarResult}
+              unit="g/mol"
+              label="Molar Mass"
+              gradient={['#00FF88', '#00CC66']}
+            />
+          </View>
+        </CalculatorSection>
 
-          {/* Composition */}
-          <CalculatorSection
-            title="Percent Composition"
-            icon="📊"
-            color="#F43F5E"
-            expanded={expandedSections.comp}
-            onToggle={() => toggleSection('comp')}
-          >
-            <View style={styles.calcBox}>
-              <InputField label="Chemical Formula" value={compFormula} onChange={setCompFormula} placeholder="e.g., C6H12O6" />
-              <TouchableOpacity onPress={calculateComp} activeOpacity={0.8} style={[styles.button, { backgroundColor: '#F43F5E' }]}>
+        {/* Percent Composition */}
+        <CalculatorSection
+          title="Percent Composition"
+          icon="📊"
+          gradient={['#FF6B9D', '#FF3366']}
+          expanded={expandedSections.comp}
+          onToggle={() => toggleSection('comp')}
+        >
+          <View style={styles.calcBox}>
+            <PremiumInput
+              label="Chemical Formula"
+              value={compFormula}
+              onChange={setCompFormula}
+              placeholder="e.g., C6H12O6"
+              gradient={['#FF6B9D', '#FF3366']}
+            />
+            <TouchableOpacity onPress={calculateComp} activeOpacity={0.8} style={styles.buttonWrapper}>
+              <LinearGradient
+                colors={['#FF6B9D', '#FF3366']}
+                style={styles.button}
+              >
+                <MaterialCommunityIcons name="chart-pie" size={20} color="#FFF" />
                 <Text style={styles.buttonText}>Analyze Composition</Text>
-              </TouchableOpacity>
-              {compResult && (
-                <View style={styles.compositionContainer}>
-                  <View style={styles.compositionHeader}>
-                    <View style={styles.compositionDot} />
-                    <Text style={styles.compositionTitle}>Elemental Breakdown</Text>
-                  </View>
-                  <View style={styles.compositionGrid}>
-                    {compResult.map(({ elem, percent }) => (
-                      <View key={elem} style={styles.compositionItem}>
+              </LinearGradient>
+            </TouchableOpacity>
+            {compResult && (
+              <View style={styles.compositionContainer}>
+                <View style={styles.compositionHeader}>
+                  <LinearGradient
+                    colors={['#FF6B9D', '#FF3366']}
+                    style={styles.compositionDot}
+                  />
+                  <Text style={styles.compositionTitle}>Elemental Breakdown</Text>
+                </View>
+                <View style={styles.compositionGrid}>
+                  {compResult.map(({ elem, percent }, index) => (
+                    <View key={elem} style={styles.compositionItem}>
+                      <LinearGradient
+                        colors={['rgba(255, 107, 157, 0.2)', 'rgba(255, 107, 157, 0.05)']}
+                        style={styles.compositionItemBg}
+                      >
                         <Text style={styles.compositionElem}>{elem}</Text>
                         <Text style={styles.compositionPercent}>{percent}%</Text>
-                      </View>
-                    ))}
-                  </View>
+                      </LinearGradient>
+                    </View>
+                  ))}
                 </View>
-              )}
-            </View>
-          </CalculatorSection>
+              </View>
+            )}
+          </View>
+        </CalculatorSection>
 
-          {/* Constants */}
-          <View style={styles.constantsSection}>
-            <View style={styles.constantsHeader}>
+        {/* Physical Constants */}
+        <GlassCard style={styles.constantsSection}>
+          <View style={styles.constantsHeader}>
+            <LinearGradient
+              colors={['#FFC059', '#FFAA00']}
+              style={styles.constantsIconGradient}
+            >
               <Text style={styles.constantsIcon}>⭐</Text>
-              <Text style={styles.constantsTitle}>Physical Constants</Text>
-            </View>
-            <View style={styles.constantsGrid}>
-              {constants.map((constant, index) => (
-                <View key={index} style={styles.constantCard}>
+            </LinearGradient>
+            <Text style={styles.constantsTitle}>Physical Constants</Text>
+          </View>
+          <View style={styles.constantsGrid}>
+            {constants.map((constant, index) => (
+              <View key={index} style={styles.constantCard}>
+                <LinearGradient
+                  colors={[...constant.gradient.map(c => c + '15'), constant.gradient[0] + '05']}
+                  style={styles.constantCardBg}
+                >
                   <Text style={styles.constantName}>{constant.name}</Text>
                   <Text style={styles.constantValue}>{constant.value}</Text>
                   <Text style={styles.constantUnit}>{constant.unit}</Text>
-                </View>
-              ))}
-            </View>
+                </LinearGradient>
+              </View>
+            ))}
           </View>
+        </GlassCard>
 
-          {/* Clear Button */}
-          <TouchableOpacity onPress={clearAll} activeOpacity={0.8} style={styles.clearButton}>
-            <Text style={styles.clearButtonText}>✕ Clear All Fields</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+        {/* Clear All Button */}
+        <TouchableOpacity onPress={clearAll} activeOpacity={0.8} style={styles.clearButtonWrapper}>
+          <LinearGradient
+            colors={['rgba(255, 107, 157, 0.2)', 'rgba(255, 107, 157, 0.05)']}
+            style={styles.clearButton}
+          >
+            <MaterialCommunityIcons name="trash-can-outline" size={20} color="#FF6B9D" />
+            <Text style={styles.clearButtonText}>Clear All Fields</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <View style={{ height: 40 }} />
+      </Animated.ScrollView>
     </View>
   );
 }
 
+// ========================================
+// PREMIUM STYLES
+// ========================================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0E1A',
-  },
-  background: {
-    flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0B0D17',
   },
   scrollContent: {
     padding: 20,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 40,
   },
+
+  // Header
   header: {
     alignItems: 'center',
-    marginBottom: 36,
+    marginBottom: 32,
+    position: 'relative',
+  },
+  headerGlow: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
+    opacity: 0.3,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    backgroundColor: '#A855F7',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 16,
-    shadowColor: '#A855F7',
-    shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#00F5FF',
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowRadius: 20,
+  },
+  logoGradient: {
+    width: 88,
+    height: 88,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoIcon: {
-    fontSize: 40,
+    fontSize: 44,
   },
   title: {
-    fontSize: 44,
+    fontSize: 40,
     fontWeight: '900',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    letterSpacing: 1.5,
-    textShadowColor: 'rgba(168, 85, 247, 0.5)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 12,
+    color: COLORS.text,
+    letterSpacing: -0.5,
+    marginBottom: 6,
+    textShadowColor: 'rgba(0, 245, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#94A3B8',
+    fontSize: 14,
+    color: COLORS.textDim,
     fontWeight: '600',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  headerAccent: {
-    width: 60,
-    height: 4,
-    backgroundColor: '#A855F7',
+  headerDivider: {
+    width: 100,
+    height: 3,
+    marginTop: 16,
+  },
+  dividerGradient: {
+    flex: 1,
     borderRadius: 2,
-    marginTop: 12,
   },
-  section: {
-    marginBottom: 20,
-    backgroundColor: '#1E293B',
-    borderRadius: 20,
+
+  // Glass Card
+  glassCard: {
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  glassGradient: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.05,
+  },
+  glassBlur: {
+    padding: 20,
+  },
+
+  // Section
+  section: {
+    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#1E293B',
+    paddingBottom: 16,
   },
   sectionTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
+  sectionIconGradient: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
-  iconText: {
-    fontSize: 24,
+  sectionIcon: {
+    fontSize: 26,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.textBright,
     letterSpacing: 0.3,
   },
-  chevron: {
-    fontSize: 18,
-    color: '#94A3B8',
-    fontWeight: '700',
-  },
   sectionContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: '#1E293B',
+    paddingTop: 8,
   },
+
+  // Calc Box
   calcBox: {
-    backgroundColor: '#0F172A',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#334155',
+    marginBottom: 20,
   },
   formulaContainer: {
-    backgroundColor: '#1E293B',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    marginBottom: 18,
-    borderLeftWidth: 3,
-    borderLeftColor: '#A855F7',
+    marginBottom: 20,
+  },
+  formulaBg: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   formula: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#C4B5FD',
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.textBright,
+    textAlign: 'center',
     letterSpacing: 0.5,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
+
+  // Input
   inputContainer: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   inputLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#CBD5E1',
-    marginBottom: 8,
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.textDim,
+    marginBottom: 10,
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
-    borderRadius: 14,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#334155',
+    overflow: 'hidden',
   },
   input: {
     flex: 1,
-    padding: 16,
-    color: '#FFFFFF',
-    fontSize: 16,
+    padding: 18,
+    color: COLORS.text,
+    fontSize: 17,
     fontWeight: '600',
   },
+  unitBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderRadius: 10,
+  },
   unitText: {
-    paddingRight: 16,
-    color: '#94A3B8',
-    fontSize: 14,
+    color: COLORS.textDim,
+    fontSize: 13,
     fontWeight: '700',
   },
-  button: {
-    paddingVertical: 18,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 14,
+
+  // Button
+  buttonWrapper: {
+    marginTop: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 10,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
+
+  // Result
   resultContainer: {
-    marginTop: 18,
-    padding: 18,
-    backgroundColor: '#0F172A',
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#10B981',
+    marginTop: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  resultGradient: {
+    padding: 1,
+  },
+  resultInner: {
+    backgroundColor: COLORS.card,
+    borderRadius: 15,
+    padding: 20,
   },
   resultHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
     gap: 10,
+    marginBottom: 12,
   },
-  sparkle: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#10B981',
-    borderRadius: 4,
+  resultDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   resultLabel: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#10B981',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
   },
   resultValue: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
+    color: COLORS.text,
+    letterSpacing: -0.5,
   },
   resultUnit: {
-    fontSize: 20,
-    color: '#94A3B8',
+    fontSize: 22,
+    color: COLORS.textDim,
     fontWeight: '600',
   },
+
+  // Composition
   compositionContainer: {
-    marginTop: 18,
-    padding: 18,
-    backgroundColor: '#0F172A',
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#F43F5E',
+    marginTop: 20,
   },
   compositionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
     gap: 10,
+    marginBottom: 16,
   },
   compositionDot: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#F43F5E',
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   compositionTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#F43F5E',
+    color: '#FF6B9D',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
   },
   compositionGrid: {
     flexDirection: 'row',
@@ -736,105 +1132,104 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   compositionItem: {
-    backgroundColor: '#1E293B',
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    minWidth: (width - 108) / 3,
+    width: (width - 84) / 3,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  compositionItemBg: {
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(255, 107, 157, 0.2)',
   },
   compositionElem: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: COLORS.text,
     marginBottom: 6,
   },
   compositionPercent: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#F43F5E',
+    color: '#FF6B9D',
   },
+
+  // Constants
   constantsSection: {
     marginTop: 8,
     marginBottom: 20,
-    backgroundColor: '#1E293B',
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#334155',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
   },
   constantsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 18,
     gap: 12,
+    marginBottom: 20,
+  },
+  constantsIconGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   constantsIcon: {
     fontSize: 24,
   },
   constantsTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  constantsTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 16,
+    fontWeight: '800',
+    color: COLORS.textBright,
+    letterSpacing: 0.3,
   },
   constantsGrid: {
     gap: 12,
   },
   constantCard: {
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    padding: 16,
-    borderRadius: 12,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  constantCardBg: {
+    padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
+    borderColor: COLORS.border,
   },
   constantName: {
     fontSize: 13,
-    color: '#94A3B8',
-    marginBottom: 6,
-    fontWeight: '500',
+    color: COLORS.textDim,
+    marginBottom: 8,
+    fontWeight: '600',
   },
   constantValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '900',
+    color: COLORS.text,
     marginBottom: 4,
   },
   constantUnit: {
     fontSize: 12,
-    color: '#64748B',
-    fontWeight: '500',
+    color: COLORS.textDim,
+    fontWeight: '600',
   },
+
+  // Clear Button
   clearButtonWrapper: {
     marginTop: 8,
-    marginBottom: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   clearButton: {
-    paddingVertical: 18,
-    borderRadius: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 157, 0.3)',
   },
   clearButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
+    color: '#FF6B9D',
+    fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.5,
   },

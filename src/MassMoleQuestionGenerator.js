@@ -90,7 +90,7 @@ const MassMoleQuestionGenerator = {
       
       return {
         id: `mtm_${Date.now()}_${Math.random()}`,
-        type: 'Mass → Moles',
+        type: 'Mass -> Moles',
         icon: '⚖️',
         difficulty: 'Easy',
         color: '#1F2937',
@@ -119,7 +119,7 @@ const MassMoleQuestionGenerator = {
       
       return {
         id: `mtm_${Date.now()}_${Math.random()}`,
-        type: 'Moles → Mass',
+        type: 'Moles -> Mass',
         icon: '🔬',
         difficulty: 'Easy',
         color: '#374151',
@@ -149,7 +149,7 @@ const MassMoleQuestionGenerator = {
       
       return {
         id: `mlm_${Date.now()}_${Math.random()}`,
-        type: 'Molecules → Moles',
+        type: 'Molecules -> Moles',
         icon: '🧬',
         difficulty: 'Medium',
         color: '#4B5563',
@@ -178,7 +178,7 @@ const MassMoleQuestionGenerator = {
       
       return {
         id: `mtml_${Date.now()}_${Math.random()}`,
-        type: 'Moles → Molecules',
+        type: 'Moles -> Molecules',
         icon: '⚛️',
         difficulty: 'Medium',
         color: '#6B7280',
@@ -208,7 +208,7 @@ const MassMoleQuestionGenerator = {
       
       return {
         id: `masm_${Date.now()}_${Math.random()}`,
-        type: 'Mass → Molecules',
+        type: 'Mass -> Molecules',
         icon: '💫',
         difficulty: 'Hard',
         color: '#111827',
@@ -225,7 +225,7 @@ const MassMoleQuestionGenerator = {
           `N = ${molecules} molecules`
         ],
         answer: `${molecules} molecules`,
-        concept: 'Two-step conversion: mass → moles → molecules',
+        concept: 'Two-step conversion: mass -> moles -> molecules',
         hint: 'First find moles, then multiply by Avogadro\'s number'
       };
     },
@@ -240,7 +240,7 @@ const MassMoleQuestionGenerator = {
       
       return {
         id: `mlms_${Date.now()}_${Math.random()}`,
-        type: 'Molecules → Mass',
+        type: 'Molecules -> Mass',
         icon: '🎯',
         difficulty: 'Hard',
         color: '#1F2937',
@@ -257,7 +257,7 @@ const MassMoleQuestionGenerator = {
           `mass = ${mass} grams`
         ],
         answer: `${mass} g`,
-        concept: 'Two-step conversion: molecules → moles → mass',
+        concept: 'Two-step conversion: molecules -> moles -> mass',
         hint: 'First find moles using Avogadro\'s number'
       };
     },

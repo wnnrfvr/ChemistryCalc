@@ -189,10 +189,10 @@ const QuickReferenceScreen = () => {
 
                             <View style={styles.exampleBox}>
                                 <Text style={styles.exampleTitle}>📝 Examples to try:</Text>
-                                <Text style={styles.exampleText}>• H2O (Water) → 18.02 g/mol</Text>
-                                <Text style={styles.exampleText}>• NaCl (Salt) → 58.44 g/mol</Text>
-                                <Text style={styles.exampleText}>• CO2 (Carbon Dioxide) → 44.01 g/mol</Text>
-                                <Text style={styles.exampleText}>• C6H12O6 (Glucose) → 180.16 g/mol</Text>
+                                <Text style={styles.exampleText}>• H2O (Water) {'->'} 18.02 g/mol</Text>
+                                <Text style={styles.exampleText}>• NaCl (Salt) {'->'} 58.44 g/mol</Text>
+                                <Text style={styles.exampleText}>• CO2 (Carbon Dioxide) {'->'} 44.01 g/mol</Text>
+                                <Text style={styles.exampleText}>• C6H12O6 (Glucose) {'->'} 180.16 g/mol</Text>
                             </View>
                         </View>
                     </View>

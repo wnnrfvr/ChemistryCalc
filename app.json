@@ -1,64 +1,48 @@
 {
-  "expo": {
-    "name": "Chemistry Calc",
-    "slug": "ChemistryCalc",
-    "version": "2.1.0",
-    "orientation": "portrait",
-    "icon": "./assets/chem.png",
-    "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/chem.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0A0F1C"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.decadino.ChemistryCalc",
-      "buildNumber": "1"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/chem.png",
-        "backgroundColor": "#0A0F1C"
-      },
-      "package": "com.decadino.ChemistryCalc",
-      "versionCode": 5,
-      "permissions": [
-        "INTERNET",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "SCHEDULE_EXACT_ALARM"
-      ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      [
-        "react-native-google-mobile-ads",
-        {
-          "iosAppId": "ca-app-pub-XXXXXXXX~YYYYYYYYYY",
-          "androidAppId": "ca-app-pub-8342678716913452~3619821433"
+    "expo": {
+        "name": "Chemistry Calc",
+        "slug": "ChemistryCalc",
+        "version": "2.1.0",
+        "orientation": "portrait",
+        "icon": "./assets/chem.png",
+        "userInterfaceStyle": "dark",
+        "splash": {
+            "image": "./assets/chem.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#0A0F1C"
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.decadino.ChemistryCalc",
+            "buildNumber": "1"
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/chem.png",
+                "backgroundColor": "#0A0F1C"
+            },
+            "package": "com.decadino.ChemistryCalc",
+            "versionCode": 5,
+            "permissions": [
+                "INTERNET",
+                "VIBRATE"
+            ]
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "plugins": [
+            "expo-font",
+            "./plugins/withProguard",
+            "./plugins/withLevelPlay"
+        ],
+        "extra": {
+            "eas": {
+                "projectId": "afd0afa2-9f28-4b7c-8d1c-02a552110c6c"
+            }
         }
-      ],
-      "expo-font",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/chem.png",
-          "color": "#00FFCC",
-          "sounds": []
-        }
-      ],
-      "./plugins/withProguard"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "afd0afa2-9f28-4b7c-8d1c-02a552110c6c"
-      }
     }
-  }
 }

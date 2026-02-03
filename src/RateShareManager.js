@@ -94,6 +94,12 @@ class RateShareManagerService {
         this.saveData();
     }
 
+    // Increment completed quiz count
+    incrementQuiz() {
+        this.data.quizCount = (this.data.quizCount || 0) + 1;
+        this.saveData();
+    }
+
     // User completed rating
     recordRatingComplete(rating) {
         if (rating >= 4) {

@@ -36,7 +36,30 @@ const ThermoChemistry = () => {
 
   useEffect(() => {
     const generatedQuestions = QuestionGenerator.generateQuestionSet(50);
-    setQuestions(generatedQuestions);
+    const normalizedQuestions = generatedQuestions.map(q => {
+      // 1. Ensure solution is an array
+      const solutionArray = Array.isArray(q.solution)
+        ? q.solution
+        : (q.solution ? q.solution.split('\n').filter(s => s.trim() !== '') : []);
+
+      // 2. Derive answer if missing
+      let finalAnswer = q.answer;
+      if (!finalAnswer && q.options && q.correctOptionId) {
+        const correctOpt = q.options.find(o => o.id === q.correctOptionId);
+        if (correctOpt) finalAnswer = correctOpt.text;
+      }
+
+      // 3. Derive concept if missing
+      const finalConcept = q.concept || q.topic || 'General Chemistry';
+
+      return {
+        ...q,
+        solution: solutionArray,
+        answer: finalAnswer,
+        concept: finalConcept
+      };
+    });
+    setQuestions(normalizedQuestions);
     Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
   }, []);
 

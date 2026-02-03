@@ -1,81 +1,125 @@
-// AdManager.js - Complete Ad Management System
-// Unified, smart ad management with frequency capping & native ad support
-
+// AdManager.js - LevelPlay Implementation
+import { Platform } from 'react-native';
+import {
+    LevelPlay,
+    LevelPlayInitRequest,
+    LevelPlayInterstitialAd,
+    LevelPlayRewardedAd,
+    LevelPlayAdSize
+} from 'unity-levelplay-mediation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { InterstitialAd, RewardedAd, AdEventType, RewardedAdEventType, TestIds } from './components/AdMobWrapper';
 
-const AD_STATE_KEY = '@ad_state_v2';
+const APP_KEY_ANDROID = '251a25ebd';
+const APP_KEY_IOS = '8545d445';
 
-// ========================================
-// AD UNIT IDS - Your Production IDs
-// ========================================
 export const AD_UNITS = {
-    BANNER_HOME: 'ca-app-pub-8342678716913452/9214380156',
-    BANNER_RESULT: 'ca-app-pub-8342678716913452/8854618543',
-    INTERSTITIAL: 'ca-app-pub-8342678716913452/3774351217',
-    REWARDED: 'ca-app-pub-8342678716913452/1945595260',
+    // LevelPlay Ad Unit IDs & Placement Names
+    INTERSTITIAL_ID: 'gl2c8mq7o9ixx7x2',
+    REWARDED_ID: 'p8jinggss5qkw4yt',
+    BANNER_ID: 'llpqic6rry7c6sng',
+
+    // Placements
+    PLACEMENT_INTERSTITIAL: 'Interstitial',
+    PLACEMENT_REWARDED: 'Rewarded',
+    PLACEMENT_BANNER: 'Banner'
 };
 
-// ========================================
-// AD PLACEMENT STRATEGY
-// ========================================
+const AD_STATE_KEY = '@ad_state_levelplay_v1';
+
 export const AD_STRATEGY = {
-    // Interstitial Rules
-    INTERSTITIAL_COOLDOWN_MS: 2 * 60 * 1000,  // 2 minutes between ads
-    CALCULATIONS_BEFORE_AD: 4,                 // Show after every 4th calculation
-    MAX_INTERSTITIALS_PER_SESSION: 6,         // Max per session
-
-    // Banner Placement
-    BANNER_SCREENS: ['Home', 'Glossary', 'PeriodicTable', 'QuickReference', 'Settings'],
-    NO_BANNER_SCREENS: ['Quiz'],              // Never show during quiz
-
-    // Rewarded Ad Opportunities
-    REWARDED_XP_AMOUNT: 50,                   // XP reward for watching
-    REWARDED_AD_FREE_MINUTES: 30,             // Ad-free time reward
+    INTERSTITIAL_COOLDOWN_MS: 2 * 60 * 1000,
+    CALCULATIONS_BEFORE_AD: 4,
+    MAX_INTERSTITIALS_PER_SESSION: 6,
+    NO_BANNER_SCREENS: ['Quiz'],
+    REWARDED_XP_AMOUNT: 50,
+    REWARDED_AD_FREE_MINUTES: 30,
 };
 
-// ========================================
-// AD MANAGER SERVICE
-// ========================================
 class AdManagerService {
     constructor() {
         this.state = {
             lastInterstitialTime: 0,
             interstitialsShownThisSession: 0,
             calculationsSinceLastAd: 0,
-            sessionStartTime: Date.now(),
             adFreeUntil: 0,
             totalAdsWatched: 0,
         };
 
-        this.interstitial = null;
-        this.rewarded = null;
         this.isInitialized = false;
-        this.interstitialLoaded = false;
-        this.rewardedLoaded = false;
+        this.interstitial = null;
+        this.listeners = [];
     }
 
-    // Initialize ads on app start
+    addListener(callback) {
+        this.listeners.push(callback);
+        // Immediate callback if already initialized
+        if (this.isInitialized) {
+            callback(true);
+        }
+        return () => {
+            this.listeners = this.listeners.filter(cb => cb !== callback);
+        };
+    }
+
     async initialize() {
         if (this.isInitialized) return;
 
         await this.loadState();
-        this.createInterstitial();
-        this.createRewarded();
-        this.isInitialized = true;
 
-        console.log('✅ AdManager initialized');
+        const appKey = Platform.select({
+            ios: APP_KEY_IOS,
+            android: APP_KEY_ANDROID,
+        });
+
+        // Initialize LevelPlay
+        const initRequest = LevelPlayInitRequest.builder(appKey).build();
+        const listener = {
+            onInitSuccess: (config) => {
+                console.log('✅ LevelPlay Initialized (AdManager)');
+                this.isInitialized = true;
+                this.listeners.forEach(cb => cb(true));
+                this.loadAds();
+            },
+            onInitFailed: (error) => {
+                console.error('❌ LevelPlay Init Failed:', error);
+                setTimeout(() => this.initialize(), 5000);
+            }
+        };
+        LevelPlay.init(initRequest, listener);
+    }
+
+    loadAds() {
+        // Interstitial
+        this.interstitial = new LevelPlayInterstitialAd(AD_UNITS.INTERSTITIAL_ID);
+        this.interstitial.setListener({
+            onAdLoaded: () => console.log('📺 Interstitial Loaded'),
+            onAdLoadFailed: (e) => console.log('📺 Interstitial Load Failed', e),
+            onAdClosed: () => this.interstitial.loadAd(), // Auto reload
+            onAdDisplayFailed: () => this.interstitial.loadAd()
+        });
+        this.interstitial.loadAd();
+
+        // Rewarded
+        this.rewarded = new LevelPlayRewardedAd(AD_UNITS.REWARDED_ID);
+        this.rewarded.setListener({
+            onAdLoaded: () => console.log('🎁 Rewarded Loaded'),
+            onAdLoadFailed: (e) => console.log('🎁 Rewarded Load Failed', e),
+            onAdClosed: () => this.rewarded.loadAd(),
+            onAdDisplayFailed: () => this.rewarded.loadAd(),
+            onAdRewarded: (reward) => {
+                console.log('🎁 Reward Earned:', reward);
+                // Listeners handled in showRewarded
+            }
+        });
+        this.rewarded.loadAd();
     }
 
     async loadState() {
         try {
             const saved = await AsyncStorage.getItem(AD_STATE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                this.state = { ...this.state, ...parsed };
-            }
+            if (saved) this.state = { ...this.state, ...JSON.parse(saved) };
         } catch (e) {
-            console.error('Error loading ad state:', e);
+            console.error('Error loading ad state', e);
         }
     }
 
@@ -83,268 +127,106 @@ class AdManagerService {
         try {
             await AsyncStorage.setItem(AD_STATE_KEY, JSON.stringify(this.state));
         } catch (e) {
-            console.error('Error saving ad state:', e);
+            console.error('Error saving ad state', e);
         }
     }
 
-    // ========================================
-    // INTERSTITIAL ADS
-    // ========================================
-    createInterstitial() {
-        const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : AD_UNITS.INTERSTITIAL;
-
-        this.interstitial = InterstitialAd.createForAdRequest(adUnitId, {
-            keywords: ['education', 'chemistry', 'science', 'learning'],
-        });
-
-        this.interstitial.addAdEventListener(AdEventType.LOADED, () => {
-            console.log('📺 Interstitial loaded');
-            this.interstitialLoaded = true;
-        });
-
-        this.interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-            console.log('📺 Interstitial closed, reloading...');
-            this.interstitialLoaded = false;
-            this.interstitial.load();
-        });
-
-        this.interstitial.load();
-    }
-
-    // Check if we can show interstitial
+    // Logic
     canShowInterstitial() {
-        const now = Date.now();
-
-        // Check ad-free mode
-        if (now < this.state.adFreeUntil) {
-            console.log('🔕 Ad-free mode active');
-            return false;
-        }
-
-        // Check cooldown
-        if (now - this.state.lastInterstitialTime < AD_STRATEGY.INTERSTITIAL_COOLDOWN_MS) {
-            console.log('⏱️ Interstitial cooldown active');
-            return false;
-        }
-
-        // Check session limit
-        if (this.state.interstitialsShownThisSession >= AD_STRATEGY.MAX_INTERSTITIALS_PER_SESSION) {
-            console.log('🚫 Max interstitials reached for session');
-            return false;
-        }
-
+        if (!this.isInitialized) return false;
+        if (Date.now() < this.state.adFreeUntil) return false;
+        if (Date.now() - this.state.lastInterstitialTime < AD_STRATEGY.INTERSTITIAL_COOLDOWN_MS) return false;
         return true;
     }
 
-    // Call after calculation - tracks and shows ad when appropriate
-    onCalculationComplete() {
-        this.state.calculationsSinceLastAd++;
-
-        if (this.state.calculationsSinceLastAd >= AD_STRATEGY.CALCULATIONS_BEFORE_AD) {
-            if (this.canShowInterstitial()) {
-                this.state.calculationsSinceLastAd = 0;
-                return true; // Caller should show ad
-            }
-        }
-        return false;
-    }
-
-    // Call after quiz completion
-    onQuizComplete() {
-        return this.canShowInterstitial();
-    }
-
-    // Actually show the interstitial
     async showInterstitial(onComplete) {
         if (!this.canShowInterstitial()) {
             if (onComplete) onComplete();
             return false;
         }
 
-        try {
-            await this.interstitial.show();
-
+        const isReady = await this.interstitial.isAdReady();
+        if (isReady) {
+            this.interstitial.showAd(AD_UNITS.PLACEMENT_INTERSTITIAL);
             this.state.lastInterstitialTime = Date.now();
-            this.state.interstitialsShownThisSession++;
-            this.state.totalAdsWatched++;
             this.saveState();
-
-            if (onComplete) onComplete();
+            if (onComplete) onComplete(); // In reality, better to wait for close
             return true;
-        } catch (error) {
-            console.log('Error showing interstitial:', error);
+        } else {
+            this.interstitial.loadAd();
             if (onComplete) onComplete();
             return false;
         }
     }
 
-    // ========================================
-    // REWARDED ADS
-    // ========================================
+    async showRewarded(onReward) {
+        if (!this.isInitialized) return false;
 
-    // Simple method for showing rewarded ad with XP + ad-free combo
-    async showRewarded(onComplete) {
-        return new Promise((resolve) => {
-            this.showRewardedAd('bonus_xp',
-                () => {
-                    // Grant ad-free
-                    this.state.adFreeUntil = Date.now() + (AD_STRATEGY.REWARDED_AD_FREE_MINUTES * 60 * 1000);
-                    this.saveState();
-
-                    // Return XP amount to caller
-                    if (onComplete) onComplete(AD_STRATEGY.REWARDED_XP_AMOUNT);
-                    resolve(true);
-                },
-                () => {
-                    if (onComplete) onComplete(0);
-                    resolve(false);
+        const isReady = await this.rewarded.isAdReady();
+        if (isReady) {
+            // Override listener for this specific show instance
+            this.rewarded.setListener({
+                onAdLoaded: () => { }, // Already loaded
+                onAdLoadFailed: () => { },
+                onAdClosed: () => this.rewarded.loadAd(),
+                onAdDisplayFailed: () => this.rewarded.loadAd(),
+                onAdRewarded: (reward) => {
+                    console.log('🎁 User Earned Reward:', reward);
+                    if (onReward) onReward();
                 }
-            );
-        });
-    }
+            });
 
-    createRewarded() {
-        const adUnitId = __DEV__ ? TestIds.REWARDED : AD_UNITS.REWARDED;
-
-        this.rewarded = RewardedAd.createForAdRequest(adUnitId, {
-            keywords: ['education', 'chemistry', 'science', 'learning'],
-        });
-
-        // Use RewardedAdEventType for loaded event
-        this.rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
-            console.log('🎁 Rewarded ad loaded successfully!');
-            this.rewardedLoaded = true;
-        });
-
-        this.rewarded.addAdEventListener(AdEventType.ERROR, (error) => {
-            console.log('🎁 Rewarded ad error:', error);
-            this.rewardedLoaded = false;
-            // Retry loading after delay
-            setTimeout(() => {
-                console.log('🎁 Retrying rewarded ad load...');
-                this.rewarded.load();
-            }, 5000);
-        });
-
-        console.log('🎁 Starting rewarded ad load...');
-        this.rewarded.load();
-    }
-
-    // Force preload rewarded ad (call when user opens Settings)
-    preloadRewarded() {
-        if (!this.rewardedLoaded && this.rewarded) {
-            console.log('🎁 Preloading rewarded ad...');
-            this.rewarded.load();
-        }
-    }
-
-
-    async showRewardedAd(rewardType, onRewarded, onFailed) {
-        // Check if ad is loaded
-        if (!this.rewardedLoaded) {
-            console.log('🎁 Rewarded ad not loaded yet, loading now...');
-            this.rewarded.load();
-            if (onFailed) onFailed();
-            return;
+            this.rewarded.showAd(AD_UNITS.PLACEMENT_REWARDED);
+            return true;
         }
 
-        try {
-            let rewardEarned = false;
+        // Try loading if not ready for next time
+        this.rewarded.loadAd();
+        return false;
+    }
 
-            const rewardListener = this.rewarded.addAdEventListener(
-                RewardedAdEventType.EARNED_REWARD,
-                () => {
-                    rewardEarned = true;
-                    console.log('🎁 Reward earned:', rewardType);
-                }
-            );
-
-            const closedListener = this.rewarded.addAdEventListener(
-                AdEventType.CLOSED,
-                () => {
-                    this.rewardedLoaded = false;
-                    this.rewarded.load(); // Reload for next time
-
-                    if (rewardEarned) {
-                        // Grant the reward based on type
-                        if (rewardType === 'bonus_xp') {
-                            // XP will be granted by caller
-                        } else if (rewardType === 'ad_free') {
-                            this.state.adFreeUntil = Date.now() + (AD_STRATEGY.REWARDED_AD_FREE_MINUTES * 60 * 1000);
-                            this.saveState();
-                        }
-
-                        if (onRewarded) onRewarded();
-                    } else {
-                        if (onFailed) onFailed();
-                    }
-
-                    rewardListener();
-                    closedListener();
-                }
-            );
-
-            await this.rewarded.show();
-        } catch (error) {
-            console.log('Error showing rewarded ad:', error);
-            if (onFailed) onFailed();
+    onCalculationComplete() {
+        if (this.isAdFree()) return false;
+        this.state.calculationsSinceLastAd++;
+        if (this.state.calculationsSinceLastAd >= AD_STRATEGY.CALCULATIONS_BEFORE_AD) {
+            this.state.calculationsSinceLastAd = 0;
+            return true;
         }
+        return false;
     }
 
-    // ========================================
-    // BANNER PLACEMENT LOGIC
-    // ========================================
-    shouldShowBanner(screenName) {
-        const now = Date.now();
-
-        // Ad-free mode
-        if (now < this.state.adFreeUntil) return false;
-
-        // Check screen rules
-        if (AD_STRATEGY.NO_BANNER_SCREENS.includes(screenName)) return false;
-
-        return true;
-    }
-
-    getBannerUnitId(placement = 'home') {
-        if (__DEV__) return TestIds.BANNER;
-        return placement === 'result' ? AD_UNITS.BANNER_RESULT : AD_UNITS.BANNER_HOME;
-    }
-
-    // Check if rewarded ad is ready
-    isRewardedReady() {
-        return this.rewardedLoaded;
-    }
-
-    // Check if interstitial is ready
-    isInterstitialReady() {
-        return this.interstitialLoaded;
-    }
-
-    // ========================================
-    // AD-FREE MODE
-    // ========================================
     isAdFree() {
         return Date.now() < this.state.adFreeUntil;
     }
 
     getAdFreeTimeRemaining() {
-        const remaining = this.state.adFreeUntil - Date.now();
-        return remaining > 0 ? Math.ceil(remaining / 60000) : 0; // Minutes
+        if (!this.isAdFree()) return 0;
+        const remainingMs = this.state.adFreeUntil - Date.now();
+        return Math.ceil(remainingMs / (60 * 1000));
     }
 
-    // ========================================
-    // STATS
-    // ========================================
-    getStats() {
-        return {
-            totalAdsWatched: this.state.totalAdsWatched,
-            interstitialsThisSession: this.state.interstitialsShownThisSession,
-            isAdFree: this.isAdFree(),
-            adFreeMinutesRemaining: this.getAdFreeTimeRemaining(),
-        };
+    shouldShowBanner(screenName) {
+        if (this.isAdFree()) return false;
+        if (AD_STRATEGY.NO_BANNER_SCREENS.includes(screenName)) return false;
+        return true;
+    }
+
+    getBannerUnitId(placement) {
+        return AD_UNITS.BANNER_ID;
+    }
+    preloadRewarded() {
+        if (this.rewarded) {
+            this.rewarded.loadAd();
+        }
+    }
+
+    async isRewardedReady() {
+        if (!this.rewarded) return false;
+        return await this.rewarded.isAdReady();
     }
 }
 
 export const AdManager = new AdManagerService();
+// Auto-init
+AdManager.initialize();
 export default AdManager;
